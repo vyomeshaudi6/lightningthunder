@@ -41,9 +41,9 @@ const (
 	defaultTowerSubDirname    = "watchtower"
 	defaultTLSCertFilename    = "tls.cert"
 	defaultTLSKeyFilename     = "tls.key"
-	defaultAdminMacFilename   = "admin.macaroon"
-	defaultReadMacFilename    = "readonly.macaroon"
-	defaultInvoiceMacFilename = "invoice.macaroon"
+	DefaultAdminMacFilename   = "admin.macaroon"
+	DefaultReadMacFilename    = "readonly.macaroon"
+	DefaultInvoiceMacFilename = "invoice.macaroon"
 	defaultLogLevel           = "info"
 	defaultLogDirname         = "logs"
 	defaultLogFilename        = "lnd.log"
@@ -199,7 +199,7 @@ type Config struct {
 
 	Tor *lncfg.Tor `group:"Tor" namespace:"tor"`
 
-	SubRPCServers *subRPCServerConfigs `group:"subrpc"`
+	SubRPCServers subRPCServerConfigs `group:"subrpc"`
 
 	Hodl *hodl.Config `group:"hodl" namespace:"hodl"`
 
@@ -328,7 +328,7 @@ func DefaultConfig() Config {
 		NoSeedBackup:       defaultNoSeedBackup,
 		MinBackoff:         defaultMinBackoff,
 		MaxBackoff:         defaultMaxBackoff,
-		SubRPCServers: &subRPCServerConfigs{
+		SubRPCServers: subRPCServerConfigs{
 			SignRPC:   &signrpc.Config{},
 			RouterRPC: routerrpc.DefaultConfig(),
 		},
@@ -849,7 +849,7 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, error) {
 			return nil, fmt.Errorf(str, funcName)
 		}
 
-		cfg.Bitcoin.ChainDir = filepath.Join(cfg.DataDir,
+		cfg.Bitcoin.ChainDir = filepath.Join("/home/vyomesh/gocode/dev/tstn1/test_data",
 			defaultChainSubDirname,
 			bitcoinChain.String())
 
@@ -909,7 +909,7 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, error) {
 	// We'll now construct the network directory which will be where we
 	// store all the data specific to this chain/network.
 	cfg.networkDir = filepath.Join(
-		cfg.DataDir, defaultChainSubDirname,
+		"/home/vyomesh/gocode/dev/tstn1/test_data", defaultChainSubDirname,
 		cfg.registeredChains.PrimaryChain().String(),
 		normalizeNetwork(activeNetParams.Name),
 	)
@@ -919,17 +919,17 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, error) {
 	// the path for the macaroons to be generated.
 	if cfg.AdminMacPath == "" {
 		cfg.AdminMacPath = filepath.Join(
-			cfg.networkDir, defaultAdminMacFilename,
+			cfg.networkDir, DefaultAdminMacFilename,
 		)
 	}
 	if cfg.ReadMacPath == "" {
 		cfg.ReadMacPath = filepath.Join(
-			cfg.networkDir, defaultReadMacFilename,
+			cfg.networkDir, DefaultReadMacFilename,
 		)
 	}
 	if cfg.InvoiceMacPath == "" {
 		cfg.InvoiceMacPath = filepath.Join(
-			cfg.networkDir, defaultInvoiceMacFilename,
+			cfg.networkDir, DefaultInvoiceMacFilename,
 		)
 	}
 

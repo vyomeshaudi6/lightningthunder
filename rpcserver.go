@@ -488,7 +488,7 @@ type rpcServer struct {
 
 	// routerBackend contains the backend implementation of the router
 	// rpc sub server.
-	routerBackend *routerrpc.RouterBackend
+	routerBackend routerrpc.RouterBackend
 
 	// chanPredicate is used in the bidirectional ChannelAcceptor streaming
 	// method.
@@ -514,12 +514,12 @@ var _ lnrpc.LightningServer = (*rpcServer)(nil)
 // base level options passed to the grPC server. This typically includes things
 // like requiring TLS, etc.
 func newRPCServer(cfg *Config, s *server, macService *macaroons.Service,
-	subServerCgs *subRPCServerConfigs, serverOpts []grpc.ServerOption,
+	subServerCgs subRPCServerConfigs, serverOpts []grpc.ServerOption,
 	restDialOpts []grpc.DialOption, restProxyDest string,
 	atpl *autopilot.Manager, invoiceRegistry *invoices.InvoiceRegistry,
 	tower *watchtower.Standalone, tlsCfg *tls.Config,
 	getListeners rpcListeners,
-	chanPredicate *chanacceptor.ChainedAcceptor) (*rpcServer, error) {
+	chanPredicate *chanacceptor.ChainedAcceptor, UserId string) (*rpcServer, error) {
 
 	// Set up router rpc backend.
 	channelGraph := s.chanDB.ChannelGraph()
@@ -528,7 +528,8 @@ func newRPCServer(cfg *Config, s *server, macService *macaroons.Service,
 		return nil, err
 	}
 	graph := s.chanDB.ChannelGraph()
-	routerBackend := &routerrpc.RouterBackend{
+	routerBackend := routerrpc.RouterBackend{
+		User_Id:  UserId,
 		SelfNode: selfNode.PubKeyBytes,
 		FetchChannelCapacity: func(chanID uint64) (btcutil.Amount,
 			error) {
@@ -591,7 +592,7 @@ func newRPCServer(cfg *Config, s *server, macService *macaroons.Service,
 	// can create each sub-server!
 	registeredSubServers := lnrpc.RegisteredSubServers()
 	for _, subServer := range registeredSubServers {
-		subServerInstance, macPerms, err := subServer.New(subServerCgs)
+		subServerInstance, macPerms, err := subServer.New(subServerCgs, UserId)
 		if err != nil {
 			return nil, err
 		}
@@ -601,6 +602,9 @@ func newRPCServer(cfg *Config, s *server, macService *macaroons.Service,
 		// interceptors below.
 		subServers = append(subServers, subServerInstance)
 		subServerPerms = append(subServerPerms, macPerms)
+		// storing subserverindtances of particular subserver for all nodes vyomresh
+		routerrpc.Subserverpointers = append(routerrpc.Subserverpointers, subServerInstance)
+
 	}
 
 	// Next, we need to merge the set of sub server macaroon permissions
@@ -850,12 +854,17 @@ func (r *rpcServer) Start() error {
 
 	// Now spin up a network listener for each requested port and start a
 	// goroutine that serves REST with the created mux there.
-	for _, restEndpoint := range r.cfg.RESTListeners {
+	for i, restEndpoint := range cfg.RESTListeners {
+		if i == 0 {
+			i = i + 1
+			continue
+		}
 		lis, err := lncfg.TLSListenOnAddress(restEndpoint, r.tlsCfg)
 		if err != nil {
 			ltndLog.Errorf("gRPC proxy unable to listen on %s",
 				restEndpoint)
-			return err
+			continue
+			//return err -----
 		}
 
 		r.listenerCleanUp = append(r.listenerCleanUp, func() {
@@ -874,6 +883,7 @@ func (r *rpcServer) Start() error {
 				rpcsLog.Error(err)
 			}
 		}()
+		break
 	}
 
 	return nil
@@ -1010,7 +1020,20 @@ func (r *rpcServer) sendCoinsOnChain(paymentMap map[string]int64,
 // unconfirmed.
 func (r *rpcServer) ListUnspent(ctx context.Context,
 	in *lnrpc.ListUnspentRequest) (*lnrpc.ListUnspentResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	// Validate the confirmation arguments.
 	minConfs, maxConfs, err := lnrpc.ParseConfs(in.MinConfs, in.MaxConfs)
 	if err != nil {
@@ -1056,7 +1079,20 @@ func (r *rpcServer) ListUnspent(ctx context.Context,
 // transaction spending to multiple specified outputs in parallel.
 func (r *rpcServer) EstimateFee(ctx context.Context,
 	in *lnrpc.EstimateFeeRequest) (*lnrpc.EstimateFeeResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	// Create the list of outputs we are spending to.
 	outputs, err := addrPairsToOutputs(in.AddrToAmount)
 	if err != nil {
@@ -1109,7 +1145,20 @@ func (r *rpcServer) EstimateFee(ctx context.Context,
 // SendMany, this RPC call only allows creating a single output at a time.
 func (r *rpcServer) SendCoins(ctx context.Context,
 	in *lnrpc.SendCoinsRequest) (*lnrpc.SendCoinsResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	// Based on the passed fee related parameters, we'll determine an
 	// appropriate fee rate for this transaction.
 	satPerKw := chainfee.SatPerKVByte(in.SatPerByte * 1000).FeePerKWeight()
@@ -1238,7 +1287,20 @@ func (r *rpcServer) SendCoins(ctx context.Context,
 // outputs in parallel.
 func (r *rpcServer) SendMany(ctx context.Context,
 	in *lnrpc.SendManyRequest) (*lnrpc.SendManyResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	// Based on the passed fee related parameters, we'll determine an
 	// appropriate fee rate for this transaction.
 	satPerKw := chainfee.SatPerKVByte(in.SatPerByte * 1000).FeePerKWeight()
@@ -1290,7 +1352,20 @@ func (r *rpcServer) SendMany(ctx context.Context,
 // NewAddress creates a new address under control of the local wallet.
 func (r *rpcServer) NewAddress(ctx context.Context,
 	in *lnrpc.NewAddressRequest) (*lnrpc.NewAddressResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	// Translate the gRPC proto address type to the wallet controller's
 	// available address types.
 	var (
@@ -1349,7 +1424,20 @@ var (
 // that only the message digest and signature are needed for verification.
 func (r *rpcServer) SignMessage(ctx context.Context,
 	in *lnrpc.SignMessageRequest) (*lnrpc.SignMessageResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	if in.Msg == nil {
 		return nil, fmt.Errorf("need a message to sign")
 	}
@@ -1370,7 +1458,20 @@ func (r *rpcServer) SignMessage(ctx context.Context,
 // VerifyMessage also returns the recovered pubkey from the signature.
 func (r *rpcServer) VerifyMessage(ctx context.Context,
 	in *lnrpc.VerifyMessageRequest) (*lnrpc.VerifyMessageResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	if in.Msg == nil {
 		return nil, fmt.Errorf("need a message to verify")
 	}
@@ -1414,7 +1515,20 @@ func (r *rpcServer) VerifyMessage(ctx context.Context,
 // ConnectPeer attempts to establish a connection to a remote peer.
 func (r *rpcServer) ConnectPeer(ctx context.Context,
 	in *lnrpc.ConnectPeerRequest) (*lnrpc.ConnectPeerResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	// The server hasn't yet started, so it won't be able to service any of
 	// our requests, so we'll bail early here.
 	if !r.server.Started() {
@@ -1467,7 +1581,20 @@ func (r *rpcServer) ConnectPeer(ctx context.Context,
 // with the target peer, this action will be disallowed.
 func (r *rpcServer) DisconnectPeer(ctx context.Context,
 	in *lnrpc.DisconnectPeerRequest) (*lnrpc.DisconnectPeerResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	rpcsLog.Debugf("[disconnectpeer] from peer(%s)", in.PubKey)
 
 	if !r.server.Started() {
@@ -1838,7 +1965,20 @@ func (r *rpcServer) parseOpenChannelReq(in *lnrpc.OpenChannelRequest,
 // request to a remote peer.
 func (r *rpcServer) OpenChannel(in *lnrpc.OpenChannelRequest,
 	updateStream lnrpc.Lightning_OpenChannelServer) error {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	if err := r.canOpenChannel(); err != nil {
 		return err
 	}
@@ -1940,7 +2080,20 @@ out:
 // strings.
 func (r *rpcServer) OpenChannelSync(ctx context.Context,
 	in *lnrpc.OpenChannelRequest) (*lnrpc.ChannelPoint, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	if err := r.canOpenChannel(); err != nil {
 		return nil, err
 	}
@@ -2027,7 +2180,20 @@ func GetChanPointFundingTxid(chanPoint *lnrpc.ChannelPoint) (*chainhash.Hash, er
 // a force close after a timeout period in the case of an inactive peer.
 func (r *rpcServer) CloseChannel(in *lnrpc.CloseChannelRequest,
 	updateStream lnrpc.Lightning_CloseChannelServer) error {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	if !r.server.Started() {
 		return ErrServerNotActive
 	}
@@ -2304,7 +2470,20 @@ func abandonChanFromGraph(chanGraph *channeldb.ChannelGraph,
 // channels due to bugs fixed in newer versions of lnd.
 func (r *rpcServer) AbandonChannel(ctx context.Context,
 	in *lnrpc.AbandonChannelRequest) (*lnrpc.AbandonChannelResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	// If this isn't the dev build, then we won't allow the RPC to be
 	// executed, as it's an advanced feature and won't be activated in
 	// regular production/release builds.
@@ -2396,7 +2575,20 @@ func (r *rpcServer) AbandonChannel(ctx context.Context,
 // concerning the number of open+pending channels.
 func (r *rpcServer) GetInfo(ctx context.Context,
 	in *lnrpc.GetInfoRequest) (*lnrpc.GetInfoResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	serverPeers := r.server.Peers()
 
 	openChannels, err := r.server.chanDB.FetchAllOpenChannels()
@@ -2478,6 +2670,7 @@ func (r *rpcServer) GetInfo(ctx context.Context,
 
 	// TODO(roasbeef): add synced height n stuff
 	return &lnrpc.GetInfoResponse{
+		User_Id:             in.User_Id,
 		IdentityPubkey:      encodedIDPub,
 		NumPendingChannels:  nPendingChannels,
 		NumActiveChannels:   activeChannels,
@@ -2523,7 +2716,20 @@ func (r *rpcServer) GetRecoveryInfo(ctx context.Context,
 // ListPeers returns a verbose listing of all currently active peers.
 func (r *rpcServer) ListPeers(ctx context.Context,
 	in *lnrpc.ListPeersRequest) (*lnrpc.ListPeersResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	rpcsLog.Tracef("[listpeers] request")
 
 	serverPeers := r.server.Peers()
@@ -2680,7 +2886,20 @@ func (r *rpcServer) SubscribePeerEvents(req *lnrpc.PeerEventSubscription,
 // TODO(roasbeef): add async hooks into wallet balance changes
 func (r *rpcServer) WalletBalance(ctx context.Context,
 	in *lnrpc.WalletBalanceRequest) (*lnrpc.WalletBalanceResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	// Get total balance, from txs that have >= 0 confirmations.
 	totalBal, err := r.server.cc.wallet.ConfirmedBalance(0)
 	if err != nil {
@@ -2712,7 +2931,20 @@ func (r *rpcServer) WalletBalance(ctx context.Context,
 // channels in satoshis.
 func (r *rpcServer) ChannelBalance(ctx context.Context,
 	in *lnrpc.ChannelBalanceRequest) (*lnrpc.ChannelBalanceResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	openChannels, err := r.server.chanDB.FetchAllOpenChannels()
 	if err != nil {
 		return nil, err
@@ -2748,7 +2980,20 @@ func (r *rpcServer) ChannelBalance(ctx context.Context,
 // process of closure, either initiated cooperatively or non-cooperatively.
 func (r *rpcServer) PendingChannels(ctx context.Context,
 	in *lnrpc.PendingChannelsRequest) (*lnrpc.PendingChannelsResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	rpcsLog.Debugf("[pendingchannels]")
 
 	resp := &lnrpc.PendingChannelsResponse{}
@@ -3145,7 +3390,20 @@ func (r *rpcServer) nurseryPopulateForceCloseResp(chanPoint *wire.OutPoint,
 func (r *rpcServer) ClosedChannels(ctx context.Context,
 	in *lnrpc.ClosedChannelsRequest) (*lnrpc.ClosedChannelsResponse,
 	error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	// Show all channels when no filter flags are set.
 	filterResults := in.Cooperative || in.LocalForce ||
 		in.RemoteForce || in.Breach || in.FundingCanceled ||
@@ -3212,7 +3470,20 @@ func (r *rpcServer) ClosedChannels(ctx context.Context,
 // is a participant in.
 func (r *rpcServer) ListChannels(ctx context.Context,
 	in *lnrpc.ListChannelsRequest) (*lnrpc.ListChannelsResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	if in.ActiveOnly && in.InactiveOnly {
 		return nil, fmt.Errorf("either `active_only` or " +
 			"`inactive_only` can be set, but not both")
@@ -3833,10 +4104,26 @@ type rpcPaymentRequest struct {
 // Lightning Network with a single persistent connection.
 func (r *rpcServer) SendPayment(stream lnrpc.Lightning_SendPaymentServer) error {
 	var lock sync.Mutex
+	//stream code modify to get user id from stream
+	req, err := stream.Recv()
 
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if req.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
+
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if req.User_Id != r.server.User_Id {
+		return errors.New("Either wallet is not created with the id or please unlock the wallet first ")
+	}
 	return r.sendPayment(&paymentStream{
 		recv: func() (*rpcPaymentRequest, error) {
-			req, err := stream.Recv()
+			//req, err := stream.Recv()
 			if err != nil {
 				return nil, err
 			}
@@ -3861,10 +4148,24 @@ func (r *rpcServer) SendPayment(stream lnrpc.Lightning_SendPaymentServer) error 
 // connection.
 func (r *rpcServer) SendToRoute(stream lnrpc.Lightning_SendToRouteServer) error {
 	var lock sync.Mutex
+	//vyomesh stream code modify to get user id from stream
+	req, err := stream.Recv()
 
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if req.User_Id == RpcserverInstances[i].server.User_Id {
+			r = RpcserverInstances[i]
+			break
+		}
+	}
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if req.User_Id != r.server.User_Id {
+		return errors.New("Either wallet is not created with the id or please unlock the wallet first ")
+	}
 	return r.sendPayment(&paymentStream{
 		recv: func() (*rpcPaymentRequest, error) {
-			req, err := stream.Recv()
+			//req, err = stream.Recv()
 			if err != nil {
 				return nil, err
 			}
@@ -3995,7 +4296,7 @@ func (r *rpcServer) extractPaymentIntent(rpcPayReq *rpcPaymentRequest) (rpcPayme
 		}
 
 		if dest == r.selfNode {
-			return errors.New("self-payments not allowed")
+			return fmt.Errorf("self-payments not allowed destination%t,%t", dest, r.selfNode)
 		}
 
 		return nil
@@ -4439,7 +4740,20 @@ sendLoop:
 // hash (if any) to be encoded as hex strings.
 func (r *rpcServer) SendPaymentSync(ctx context.Context,
 	nextPayment *lnrpc.SendRequest) (*lnrpc.SendResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if nextPayment.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if nextPayment.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", nextPayment.User_Id)
+	}
 	return r.sendPaymentSync(ctx, &rpcPaymentRequest{
 		SendRequest: nextPayment,
 	})
@@ -4451,7 +4765,20 @@ func (r *rpcServer) SendPaymentSync(ctx context.Context,
 // hex strings.
 func (r *rpcServer) SendToRouteSync(ctx context.Context,
 	req *lnrpc.SendToRouteRequest) (*lnrpc.SendResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if req.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if req.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", req.User_Id)
+	}
 	if req.Route == nil {
 		return nil, fmt.Errorf("unable to send, no routes provided")
 	}
@@ -4514,7 +4841,20 @@ func (r *rpcServer) sendPaymentSync(ctx context.Context,
 // unique payment preimage.
 func (r *rpcServer) AddInvoice(ctx context.Context,
 	invoice *lnrpc.Invoice) (*lnrpc.AddInvoiceResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if invoice.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if invoice.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", invoice.User_Id)
+	}
 	defaultDelta := r.cfg.Bitcoin.TimeLockDelta
 	if r.cfg.registeredChains.PrimaryChain() == litecoinChain {
 		defaultDelta = r.cfg.Litecoin.TimeLockDelta
@@ -4574,7 +4914,20 @@ func (r *rpcServer) AddInvoice(ctx context.Context,
 // returned.
 func (r *rpcServer) LookupInvoice(ctx context.Context,
 	req *lnrpc.PaymentHash) (*lnrpc.Invoice, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if req.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if req.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", req.User_Id)
+	}
 	var (
 		payHash [32]byte
 		rHash   []byte
@@ -4625,7 +4978,20 @@ func (r *rpcServer) LookupInvoice(ctx context.Context,
 // database. Any active debug invoices are ignored.
 func (r *rpcServer) ListInvoices(ctx context.Context,
 	req *lnrpc.ListInvoiceRequest) (*lnrpc.ListInvoiceResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if req.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if req.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", req.User_Id)
+	}
 	// If the number of invoices was not specified, then we'll default to
 	// returning the latest 100 invoices.
 	if req.NumMaxInvoices == 0 {
@@ -4770,7 +5136,20 @@ func (r *rpcServer) SubscribeTransactions(req *lnrpc.GetTransactionsRequest,
 // relevant to the wallet.
 func (r *rpcServer) GetTransactions(ctx context.Context,
 	req *lnrpc.GetTransactionsRequest) (*lnrpc.TransactionDetails, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if req.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if req.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", req.User_Id)
+	}
 	// To remain backwards compatible with the old api, default to the
 	// special case end height which will return transactions from the start
 	// height until the chain tip, including unconfirmed transactions.
@@ -4799,7 +5178,20 @@ func (r *rpcServer) GetTransactions(ctx context.Context,
 // information, etc.
 func (r *rpcServer) DescribeGraph(ctx context.Context,
 	req *lnrpc.ChannelGraphRequest) (*lnrpc.ChannelGraph, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if req.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if req.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", req.User_Id)
+	}
 	resp := &lnrpc.ChannelGraph{}
 	includeUnannounced := req.IncludeUnannounced
 
@@ -4923,7 +5315,20 @@ func marshalDbEdge(edgeInfo *channeldb.ChannelEdgeInfo,
 // current channel graph.
 func (r *rpcServer) GetNodeMetrics(ctx context.Context,
 	req *lnrpc.NodeMetricsRequest) (*lnrpc.NodeMetricsResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if req.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if req.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", req.User_Id)
+	}
 	// Get requested metric types.
 	getCentrality := false
 	for _, t := range req.Types {
@@ -4982,7 +5387,20 @@ func (r *rpcServer) GetNodeMetrics(ctx context.Context,
 // chain.
 func (r *rpcServer) GetChanInfo(ctx context.Context,
 	in *lnrpc.ChanInfoRequest) (*lnrpc.ChannelEdge, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	graph := r.server.chanDB.ChannelGraph()
 
 	edgeInfo, edge1, edge2, err := graph.FetchChannelEdgesByID(in.ChanId)
@@ -5002,7 +5420,20 @@ func (r *rpcServer) GetChanInfo(ctx context.Context,
 // channel information for the specified node identified by its public key.
 func (r *rpcServer) GetNodeInfo(ctx context.Context,
 	in *lnrpc.NodeInfoRequest) (*lnrpc.NodeInfo, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	graph := r.server.chanDB.ChannelGraph()
 
 	// First, parse the hex-encoded public key into a full in-memory public
@@ -5092,15 +5523,41 @@ func (r *rpcServer) GetNodeInfo(ctx context.Context,
 //  * create separate PR to send based on well formatted route
 func (r *rpcServer) QueryRoutes(ctx context.Context,
 	in *lnrpc.QueryRoutesRequest) (*lnrpc.QueryRoutesResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	return r.routerBackend.QueryRoutes(ctx, in)
 }
 
 // GetNetworkInfo returns some basic stats about the known channel graph from
 // the PoV of the node.
 func (r *rpcServer) GetNetworkInfo(ctx context.Context,
-	_ *lnrpc.NetworkInfoRequest) (*lnrpc.NetworkInfo, error) {
+	in *lnrpc.NetworkInfoRequest) (*lnrpc.NetworkInfo, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	graph := r.server.chanDB.ChannelGraph()
 
 	var (
@@ -5230,8 +5687,21 @@ func (r *rpcServer) GetNetworkInfo(ctx context.Context,
 // StopDaemon will send a shutdown request to the interrupt handler, triggering
 // a graceful shutdown of the daemon.
 func (r *rpcServer) StopDaemon(ctx context.Context,
-	_ *lnrpc.StopRequest) (*lnrpc.StopResponse, error) {
+	in *lnrpc.StopRequest) (*lnrpc.StopResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	signal.RequestShutdown()
 	return &lnrpc.StopResponse{}, nil
 }
@@ -5365,7 +5835,20 @@ func marshallTopologyChange(topChange *routing.TopologyChange) *lnrpc.GraphTopol
 // database query.
 func (r *rpcServer) ListPayments(ctx context.Context,
 	req *lnrpc.ListPaymentsRequest) (*lnrpc.ListPaymentsResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if req.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if req.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", req.User_Id)
+	}
 	rpcsLog.Debugf("[ListPayments]")
 
 	query := channeldb.PaymentsQuery{
@@ -5409,8 +5892,21 @@ func (r *rpcServer) ListPayments(ctx context.Context,
 
 // DeleteAllPayments deletes all outgoing payments from DB.
 func (r *rpcServer) DeleteAllPayments(ctx context.Context,
-	_ *lnrpc.DeleteAllPaymentsRequest) (*lnrpc.DeleteAllPaymentsResponse, error) {
+	req *lnrpc.DeleteAllPaymentsRequest) (*lnrpc.DeleteAllPaymentsResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if req.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if req.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", req.User_Id)
+	}
 	rpcsLog.Debugf("[DeleteAllPayments]")
 
 	if err := r.server.chanDB.DeletePayments(); err != nil {
@@ -5426,7 +5922,20 @@ func (r *rpcServer) DeleteAllPayments(ctx context.Context,
 // sub-system.
 func (r *rpcServer) DebugLevel(ctx context.Context,
 	req *lnrpc.DebugLevelRequest) (*lnrpc.DebugLevelResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if req.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if req.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", req.User_Id)
+	}
 	// If show is set, then we simply print out the list of available
 	// sub-systems.
 	if req.Show {
@@ -5454,7 +5963,20 @@ func (r *rpcServer) DebugLevel(ctx context.Context,
 // payment request.
 func (r *rpcServer) DecodePayReq(ctx context.Context,
 	req *lnrpc.PayReqString) (*lnrpc.PayReq, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if req.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if req.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", req.User_Id)
+	}
 	rpcsLog.Tracef("[decodepayreq] decoding: %v", req.PayReq)
 
 	// Fist we'll attempt to decode the payment request string, if the
@@ -5527,8 +6049,21 @@ const feeBase = 1000000
 // FeeReport allows the caller to obtain a report detailing the current fee
 // schedule enforced by the node globally for each channel.
 func (r *rpcServer) FeeReport(ctx context.Context,
-	_ *lnrpc.FeeReportRequest) (*lnrpc.FeeReportResponse, error) {
+	req *lnrpc.FeeReportRequest) (*lnrpc.FeeReportResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if req.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if req.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", req.User_Id)
+	}
 	// TODO(roasbeef): use UnaryInterceptor to add automated logging
 
 	rpcsLog.Debugf("[feereport]")
@@ -5673,7 +6208,20 @@ const minFeeRate = 1e-6
 // for all channels globally, or a particular channel.
 func (r *rpcServer) UpdateChannelPolicy(ctx context.Context,
 	req *lnrpc.PolicyUpdateRequest) (*lnrpc.PolicyUpdateResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if req.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if req.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", req.User_Id)
+	}
 	var targetChans []wire.OutPoint
 	switch scope := req.Scope.(type) {
 	// If the request is targeting all active channels, then we don't need
@@ -5767,7 +6315,20 @@ func (r *rpcServer) UpdateChannelPolicy(ctx context.Context,
 // of records.
 func (r *rpcServer) ForwardingHistory(ctx context.Context,
 	req *lnrpc.ForwardingHistoryRequest) (*lnrpc.ForwardingHistoryResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if req.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if req.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", req.User_Id)
+	}
 	rpcsLog.Debugf("[forwardinghistory]")
 
 	// Before we perform the queries below, we'll instruct the switch to
@@ -5855,7 +6416,20 @@ func (r *rpcServer) ForwardingHistory(ctx context.Context,
 // WalletUnlocker service.
 func (r *rpcServer) ExportChannelBackup(ctx context.Context,
 	in *lnrpc.ExportChannelBackupRequest) (*lnrpc.ChannelBackup, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	// First, we'll convert the lnrpc channel point into a wire.OutPoint
 	// that we can manipulate.
 	txid, err := GetChanPointFundingTxid(in.ChanPoint)
@@ -5908,7 +6482,20 @@ func (r *rpcServer) ExportChannelBackup(ctx context.Context,
 // Multi. Specifying both will result in an error.
 func (r *rpcServer) VerifyChanBackup(ctx context.Context,
 	in *lnrpc.ChanBackupSnapshot) (*lnrpc.VerifyChanBackupResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	switch {
 	// If neither a Single or Multi has been specified, then we have nothing
 	// to verify.
@@ -6037,7 +6624,20 @@ func (r *rpcServer) createBackupSnapshot(backups []chanbackup.Single) (
 // each channel.
 func (r *rpcServer) ExportAllChannelBackups(ctx context.Context,
 	in *lnrpc.ChanBackupExportRequest) (*lnrpc.ChanBackupSnapshot, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	// First, we'll attempt to read back ups for ALL currently opened
 	// channels from disk.
 	allUnpackedBackups, err := chanbackup.FetchStaticChanBackups(
@@ -6058,7 +6658,20 @@ func (r *rpcServer) ExportAllChannelBackups(ctx context.Context,
 // will be shown under listchannels, as well as pending channels.
 func (r *rpcServer) RestoreChannelBackups(ctx context.Context,
 	in *lnrpc.RestoreChanBackupRequest) (*lnrpc.RestoreBackupResponse, error) {
+	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	// First, we'll make our implementation of the
 	// chanbackup.ChannelRestorer interface which we'll use to properly
 	// restore either a set of chanbackup.Single or chanbackup.Multi

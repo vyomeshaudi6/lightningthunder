@@ -136,7 +136,8 @@ type server struct {
 	stop  sync.Once
 
 	cfg *Config
-
+	// added user id for server instances on multiple port and checking them on time of lightning commands
+	User_Id string
 	// identityECDH is an ECDH capable wrapper for the private key used
 	// to authenticate any incoming connections.
 	identityECDH keychain.SingleKeyECDH
@@ -333,7 +334,7 @@ func newServer(cfg *Config, listenAddrs []net.Addr, chanDB *channeldb.DB,
 	nodeKeyDesc *keychain.KeyDescriptor,
 	chansToRestore walletunlocker.ChannelsToRecover,
 	chanPredicate chanacceptor.ChannelAcceptor,
-	torController *tor.Controller) (*server, error) {
+	torController *tor.Controller, UserId string) (*server, error) {
 
 	var (
 		err           error
@@ -343,17 +344,19 @@ func newServer(cfg *Config, listenAddrs []net.Addr, chanDB *channeldb.DB,
 		)
 	)
 
-	listeners := make([]net.Listener, len(listenAddrs))
-	for i, listenAddr := range listenAddrs {
+	listeners := make([]net.Listener, 1)
+	for _, listenAddr := range listenAddrs {
 		// Note: though brontide.NewListener uses ResolveTCPAddr, it
 		// doesn't need to call the general lndResolveTCP function
 		// since we are resolving a local address.
-		listeners[i], err = brontide.NewListener(
+		listeners[0], err = brontide.NewListener(
 			nodeKeyECDH, listenAddr.String(),
 		)
 		if err != nil {
-			return nil, err
+			//return nil, err
+			continue
 		}
+		break
 	}
 
 	var serializedPubKey [33]byte
@@ -404,6 +407,8 @@ func newServer(cfg *Config, listenAddrs []net.Addr, chanDB *channeldb.DB,
 	}
 
 	s := &server{
+		// added userid
+		User_Id:        UserId,
 		cfg:            cfg,
 		chanDB:         chanDB,
 		cc:             cc,
