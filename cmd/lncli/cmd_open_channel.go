@@ -206,6 +206,7 @@ func openChannel(ctx *cli.Context) error {
 		SpendUnconfirmed:           minConfs == 0,
 		CloseAddress:               ctx.String("close_address"),
 		RemoteMaxValueInFlightMsat: ctx.Uint64("remote_max_value_in_flight_msat"),
+		User_Id:                    UniqueId,
 	}
 
 	switch {
@@ -237,8 +238,9 @@ func openChannel(ctx *cli.Context) error {
 		}
 
 		req := &lnrpc.ConnectPeerRequest{
-			Addr: addr,
-			Perm: false,
+			Addr:    addr,
+			Perm:    false,
+			User_Id: UniqueId,
 		}
 
 		// Check if connecting to the node was successful.

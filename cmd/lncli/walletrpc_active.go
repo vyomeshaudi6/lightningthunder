@@ -287,7 +287,7 @@ func getWaitingCloseCommitments(client lnrpc.LightningClient,
 
 	ctxb := context.Background()
 
-	req := &lnrpc.PendingChannelsRequest{}
+	req := &lnrpc.PendingChannelsRequest{User_Id: UniqueId}
 	resp, err := client.PendingChannels(ctxb, req)
 	if err != nil {
 		return nil, err
