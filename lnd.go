@@ -50,7 +50,7 @@ import (
 )
 
 var (
-	cfg              *config
+	cfg              *Config
 	registeredChains = newChainRegistry()
 
 	ChanDB *channeldb.DB // channel.db
@@ -264,7 +264,7 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 	ltndLog.Infof("Opening the main database, this might take a few " +
 		"minutes...")
 
-	startOpenTime := time.Now()
+	//startOpenTime := time.Now()
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -1242,7 +1242,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 		ltndLog.Infof("lnd.go before opening channeldb.open")
 		// Open the channeldb, which is dedicated to storing channel, and
 		// network related metadata.
-		ChanDB, err := channeldb.CreateWithBackend(
+		ChanDB, err = channeldb.CreateWithBackend(
 			ChanDbBackend,
 			channeldb.OptionSetRejectCacheSize(cfg.Caches.RejectCacheSize),
 			channeldb.OptionSetChannelCacheSize(cfg.Caches.ChannelCacheSize),
@@ -1284,7 +1284,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 		ltndLog.Infof("lnd.go before opening channeldb.open")
 		// Open the channeldb, which is dedicated to storing channel, and
 		// network related metadata.
-		ChanDB, err := channeldb.CreateWithBackend(
+		ChanDB, err = channeldb.CreateWithBackend(
 			ChanDbBackend,
 			channeldb.OptionSetRejectCacheSize(cfg.Caches.RejectCacheSize),
 			channeldb.OptionSetChannelCacheSize(cfg.Caches.ChannelCacheSize),
@@ -1302,7 +1302,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 		}
 		ltndLog.Infof("lnd.go after opening channeldb.open channeled opened success")
 		// added userid for multiple server instance
-		UserId = initMsg.UniqueId
+		UserId = unlockMsg.UniqueId
 		return &WalletUnlockParams{
 			Password:       unlockMsg.Passphrase,
 			RecoveryWindow: unlockMsg.RecoveryWindow,

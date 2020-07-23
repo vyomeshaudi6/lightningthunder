@@ -603,7 +603,7 @@ func newRPCServer(cfg *Config, s *server, macService *macaroons.Service,
 		subServers = append(subServers, subServerInstance)
 		subServerPerms = append(subServerPerms, macPerms)
 		// storing subserverindtances of particular subserver for all nodes vyomresh
-		routerrpc.Subserverpointers = append(routerrpc.Subserverpointers, subServerInstance)
+		//----routerrpc.Subserverpointers = append(routerrpc.Subserverpointers, subServerInstance)
 
 	}
 
@@ -1977,7 +1977,7 @@ func (r *rpcServer) OpenChannel(in *lnrpc.OpenChannelRequest,
 	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
 	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
 	if in.User_Id != r.server.User_Id {
-		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+		return fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
 	}
 	if err := r.canOpenChannel(); err != nil {
 		return err
@@ -2192,7 +2192,7 @@ func (r *rpcServer) CloseChannel(in *lnrpc.CloseChannelRequest,
 	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
 	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
 	if in.User_Id != r.server.User_Id {
-		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+		return fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
 	}
 	if !r.server.Started() {
 		return ErrServerNotActive

@@ -20,7 +20,9 @@ var macPermissions = map[string][]bakery.Op{
 
 // Server is an rpc server that supports querying for information about the
 // running binary.
-type Server struct{}
+type Server struct{
+ UserId string
+}
 
 // Start launches any helper goroutines required for the rpcServer to function.
 //

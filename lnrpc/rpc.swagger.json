@@ -2255,6 +2255,9 @@
         "multi_chan_backup": {
           "$ref": "#/definitions/lnrpcMultiChanBackup",
           "description": "A multi-channel backup that covers all open channels currently known to\nlnd."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },

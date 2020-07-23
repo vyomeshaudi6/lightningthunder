@@ -284,6 +284,10 @@ func (s *Server) SendPaymentV2(req *SendPaymentRequest,
 		return fmt.Errorf("RouterBackend instance not match lenght of Subserverpointers : %d req.User_Id:%s , s.cfg.RouterBackend.User_Id : %s , s.User_Id: %s", len(Subserverpointers), req.User_Id, s.cfg.RouterBackend.User_Id, s.User_Id)
 	}
 
+	payment, err := s.cfg.RouterBackend.extractIntentFromSendRequest(req)
+	if err != nil {
+		return err
+	}
 	err = s.cfg.Router.SendPaymentAsync(payment)
 	if err != nil {
 		// Transform user errors to grpc code.

@@ -27,6 +27,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Versioner"
         ]

@@ -15,6 +15,7 @@ service Versioner {
 }
 
 message VersionRequest {
+string User_Id = 1;
 }
 
 message Version {

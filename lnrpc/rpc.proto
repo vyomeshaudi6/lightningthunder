@@ -3331,6 +3331,7 @@ message ChanBackupSnapshot {
     lnd.
     */
     MultiChanBackup multi_chan_backup = 2;
+string User_Id = 3;
 }
 
 message ChannelBackups {

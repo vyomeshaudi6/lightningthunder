@@ -9,10 +9,10 @@ import (
 func init() {
 	subServer := &lnrpc.SubServerDriver{
 		SubServerName: subServerName,
-		New: func(c lnrpc.SubServerConfigDispatcher) (lnrpc.SubServer,
+		New: func(c lnrpc.SubServerConfigDispatcher, UserId string) (lnrpc.SubServer,
 			lnrpc.MacaroonPerms, error) {
 
-			return &Server{}, macPermissions, nil
+			return &Server{UserId}, macPermissions, nil
 		},
 	}
 
