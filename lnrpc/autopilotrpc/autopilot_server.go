@@ -58,8 +58,8 @@ type Server struct {
 	started  int32 // To be used atomically.
 	shutdown int32 // To be used atomically.
 
-	cfg *Config
-
+	cfg     *Config
+	User_Id string
 	manager *autopilot.Manager
 }
 
@@ -72,12 +72,13 @@ var _ AutopilotServer = (*Server)(nil)
 // this method. If the macaroons we need aren't found in the filepath, then
 // we'll create them on start up. If we're unable to locate, or create the
 // macaroons we need, then we'll return with an error.
-func New(cfg *Config) (*Server, lnrpc.MacaroonPerms, error) {
+func New(cfg Config, UserId string) (*Server, lnrpc.MacaroonPerms, error) {
 	// We don't create any new macaroons for this subserver, instead reuse
 	// existing onchain/offchain permissions.
 	server := &Server{
 		cfg:     cfg,
 		manager: cfg.Manager,
+		User_Id: UserId, //code edit
 	}
 
 	return server, macPermissions, nil
@@ -157,7 +158,14 @@ func (s *Server) RegisterWithRestServer(ctx context.Context,
 // NOTE: Part of the AutopilotServer interface.
 func (s *Server) Status(ctx context.Context,
 	in *StatusRequest) (*StatusResponse, error) {
-
+	//vyomesh code edit
+	// for finding which sub server instance with userid hit the command
+	for i := 0; i < len(Subserverpointers); i++ {
+		if in.User_Id == Subserverpointers[i].User_Id {
+			s = Subserverpointers[i]
+			break
+		}
+	}
 	return &StatusResponse{
 		Active: s.manager.IsActive(),
 	}, nil
@@ -168,6 +176,14 @@ func (s *Server) Status(ctx context.Context,
 // NOTE: Part of the AutopilotServer interface.
 func (s *Server) ModifyStatus(ctx context.Context,
 	in *ModifyStatusRequest) (*ModifyStatusResponse, error) {
+	//vyomesh code edit
+	// for finding which sub server instance with userid hit the command
+	for i := 0; i < len(Subserverpointers); i++ {
+		if in.User_Id == Subserverpointers[i].User_Id {
+			s = Subserverpointers[i]
+			break
+		}
+	}
 
 	log.Debugf("Setting agent enabled=%v", in.Enable)
 
@@ -187,6 +203,14 @@ func (s *Server) ModifyStatus(ctx context.Context,
 // NOTE: Part of the AutopilotServer interface.
 func (s *Server) QueryScores(ctx context.Context, in *QueryScoresRequest) (
 	*QueryScoresResponse, error) {
+	//vyomesh code edit
+	// for finding which sub server instance with userid hit the command
+	for i := 0; i < len(Subserverpointers); i++ {
+		if in.User_Id == Subserverpointers[i].User_Id {
+			s = Subserverpointers[i]
+			break
+		}
+	}
 
 	var nodes []autopilot.NodeID
 	for _, pubStr := range in.Pubkeys {
@@ -244,6 +268,14 @@ func (s *Server) QueryScores(ctx context.Context, in *QueryScoresRequest) (
 // NOTE: Part of the AutopilotServer interface.
 func (s *Server) SetScores(ctx context.Context,
 	in *SetScoresRequest) (*SetScoresResponse, error) {
+	//vyomesh code edit
+	// for finding which sub server instance with userid hit the command
+	for i := 0; i < len(Subserverpointers); i++ {
+		if in.User_Id == Subserverpointers[i].User_Id {
+			s = Subserverpointers[i]
+			break
+		}
+	}
 
 	scores := make(map[autopilot.NodeID]float64)
 	for pubStr, score := range in.Scores {
