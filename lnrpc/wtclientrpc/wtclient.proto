@@ -42,6 +42,7 @@ message AddTowerRequest {
 
     // A network address the watchtower is reachable over.
     string address = 2;
+ string User_Id = 3;
 }
 
 message AddTowerResponse {
@@ -57,6 +58,7 @@ message RemoveTowerRequest {
     session negotiations and backups.
     */
     string address = 2;
+ string User_Id = 3;
 }
 
 message RemoveTowerResponse {
@@ -68,6 +70,7 @@ message GetTowerInfoRequest {
 
     // Whether we should include sessions with the watchtower in the response.
     bool include_sessions = 2;
+ string User_Id = 3;
 }
 
 message TowerSession {
@@ -113,6 +116,7 @@ message Tower {
 message ListTowersRequest {
     // Whether we should include sessions with the watchtower in the response.
     bool include_sessions = 1;
+ string User_Id = 2;
 }
 
 message ListTowersResponse {
@@ -121,6 +125,7 @@ message ListTowersResponse {
 }
 
 message StatsRequest {
+ string User_Id = 1;
 }
 
 message StatsResponse {
@@ -150,6 +155,7 @@ message StatsResponse {
 }
 
 message PolicyRequest {
+ string User_Id = 1;
 }
 
 message PolicyResponse {

@@ -4,6 +4,10 @@
     "title": "wtclientrpc/wtclient.proto",
     "version": "version not set"
   },
+  "schemes": [
+    "http",
+    "https"
+  ],
   "consumes": [
     "application/json"
   ],
@@ -21,12 +25,6 @@
             "schema": {
               "$ref": "#/definitions/wtclientrpcListTowersResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -37,6 +35,12 @@
             "required": false,
             "type": "boolean",
             "format": "boolean"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -51,12 +55,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/wtclientrpcAddTowerResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -85,12 +83,6 @@
             "schema": {
               "$ref": "#/definitions/wtclientrpcTower"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -109,6 +101,12 @@
             "required": false,
             "type": "boolean",
             "format": "boolean"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -126,14 +124,16 @@
             "schema": {
               "$ref": "#/definitions/wtclientrpcPolicyResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "WatchtowerClient"
         ]
@@ -149,14 +149,16 @@
             "schema": {
               "$ref": "#/definitions/wtclientrpcStatsResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "WatchtowerClient"
         ]
@@ -171,12 +173,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/wtclientrpcRemoveTowerResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -195,6 +191,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -204,39 +206,6 @@
     }
   },
   "definitions": {
-    "protobufAny": {
-      "type": "object",
-      "properties": {
-        "type_url": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string",
-          "format": "byte"
-        }
-      }
-    },
-    "runtimeError": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string"
-        },
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/protobufAny"
-          }
-        }
-      }
-    },
     "wtclientrpcAddTowerRequest": {
       "type": "object",
       "properties": {
@@ -248,6 +217,9 @@
         "address": {
           "type": "string",
           "description": "A network address the watchtower is reachable over."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },

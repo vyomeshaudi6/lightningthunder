@@ -237,6 +237,7 @@ message SendPaymentRequest {
     that show which htlcs are still in flight are suppressed.
     */
     bool no_inflight_updates = 18;
+string User_Id = 20;
 }
 
 message TrackPaymentRequest {
@@ -248,6 +249,7 @@ message TrackPaymentRequest {
     that show which htlcs are still in flight are suppressed.
     */
     bool no_inflight_updates = 2;
+string User_Id = 3;
 }
 
 message RouteFeeRequest {
@@ -260,6 +262,7 @@ message RouteFeeRequest {
     The amount one wishes to send to the target destination.
     */
     int64 amt_sat = 2;
+string User_Id = 3;
 }
 
 message RouteFeeResponse {
@@ -283,6 +286,7 @@ message SendToRouteRequest {
 
     // Route that should be used to attempt to complete the payment.
     lnrpc.Route route = 2;
+string User_Id = 3;
 }
 
 message SendToRouteResponse {
@@ -294,12 +298,14 @@ message SendToRouteResponse {
 }
 
 message ResetMissionControlRequest {
+string User_Id = 1;
 }
 
 message ResetMissionControlResponse {
 }
 
 message QueryMissionControlRequest {
+string User_Id = 1;
 }
 
 // QueryMissionControlResponse contains mission control state.
@@ -360,6 +366,7 @@ message QueryProbabilityRequest {
 
     // The amount for which to calculate a probability.
     int64 amt_msat = 3;
+string User_Id = 4;
 }
 
 message QueryProbabilityResponse {
@@ -394,6 +401,7 @@ message BuildRouteRequest {
     pubkey.
     */
     repeated bytes hop_pubkeys = 4;
+string User_Id = 5;
 }
 
 message BuildRouteResponse {
@@ -404,6 +412,7 @@ message BuildRouteResponse {
 }
 
 message SubscribeHtlcEventsRequest {
+string User_Id = 1;
 }
 
 /*
@@ -631,6 +640,7 @@ message ForwardHtlcInterceptRequest {
 
     // Any custom records that were present in the payload.
     map<uint64, bytes> custom_records = 8;
+string User_Id = 9;
 }
 
 /**
@@ -652,6 +662,7 @@ message ForwardHtlcInterceptResponse {
 
     // The preimage in case the resolve action is Settle.
     bytes preimage = 3;
+string User_Id = 4;
 }
 
 enum ResolveHoldForwardAction {

@@ -4,6 +4,10 @@
     "title": "walletrpc/walletkit.proto",
     "version": "version not set"
   },
+  "schemes": [
+    "http",
+    "https"
+  ],
   "consumes": [
     "application/json"
   ],
@@ -20,12 +24,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/walletrpcAddrResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -55,12 +53,6 @@
             "schema": {
               "$ref": "#/definitions/walletrpcBumpFeeResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -88,12 +80,6 @@
             "schema": {
               "$ref": "#/definitions/walletrpcEstimateFeeResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -104,6 +90,12 @@
             "required": true,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -120,12 +112,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/signrpcKeyDescriptor"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -154,12 +140,6 @@
             "schema": {
               "$ref": "#/definitions/signrpcKeyDescriptor"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -187,12 +167,6 @@
             "schema": {
               "$ref": "#/definitions/walletrpcSendOutputsResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -219,12 +193,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/walletrpcListSweepsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -254,14 +222,16 @@
             "schema": {
               "$ref": "#/definitions/walletrpcPendingSweepsResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "WalletKit"
         ]
@@ -276,12 +246,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/walletrpcPublishResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -310,12 +274,6 @@
             "schema": {
               "$ref": "#/definitions/walletrpcLabelTransactionResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -343,12 +301,6 @@
             "schema": {
               "$ref": "#/definitions/walletrpcListUnspentResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "tags": [
@@ -365,12 +317,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/walletrpcLeaseOutputResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -398,12 +344,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/walletrpcReleaseOutputResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -563,39 +503,6 @@
         }
       }
     },
-    "protobufAny": {
-      "type": "object",
-      "properties": {
-        "type_url": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string",
-          "format": "byte"
-        }
-      }
-    },
-    "runtimeError": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string"
-        },
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/protobufAny"
-          }
-        }
-      }
-    },
     "signrpcKeyDescriptor": {
       "type": "object",
       "properties": {
@@ -607,6 +514,9 @@
         "key_loc": {
           "$ref": "#/definitions/signrpcKeyLocator",
           "description": "The key locator that identifies which key to use for signing. Either this\nor the raw bytes of the target key must be specified."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -622,6 +532,9 @@
           "type": "integer",
           "format": "int32",
           "description": "The precise index of the key being identified."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -641,7 +554,12 @@
       }
     },
     "walletrpcAddrRequest": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "User_Id": {
+          "type": "string"
+        }
+      }
     },
     "walletrpcAddrResponse": {
       "type": "object",
@@ -673,6 +591,9 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Whether this input must be force-swept. This means that it is swept even\nif it has a negative yield."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -701,6 +622,9 @@
           "type": "integer",
           "format": "int32",
           "description": "The target key family to derive a key from. In other contexts, this is\nknown as the \"account\"."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -720,6 +644,9 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Whether to overwrite the existing label, if it is present."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -737,6 +664,9 @@
         "outpoint": {
           "$ref": "#/definitions/lnrpcOutPoint",
           "description": "The identifying outpoint of the output being leased."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -853,6 +783,9 @@
         "outpoint": {
           "$ref": "#/definitions/lnrpcOutPoint",
           "description": "The identifying outpoint of the output being released."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -877,6 +810,9 @@
         "label": {
           "type": "string",
           "description": "An optional label for the transaction, limited to 500 characters."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -901,6 +837,9 @@
         "label": {
           "type": "string",
           "description": "An optional label to save with the transaction. Limited to 500 characters."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },

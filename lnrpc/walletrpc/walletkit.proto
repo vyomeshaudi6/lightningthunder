@@ -136,6 +136,7 @@ message ListUnspentRequest {
 
     // The maximum number of confirmations to be included.
     int32 max_confs = 2;
+ string User_Id = 3;
 }
 
 message ListUnspentResponse {
@@ -152,6 +153,7 @@ message LeaseOutputRequest {
 
     // The identifying outpoint of the output being leased.
     lnrpc.OutPoint outpoint = 2;
+ string User_Id = 3;
 }
 
 message LeaseOutputResponse {
@@ -167,6 +169,7 @@ message ReleaseOutputRequest {
 
     // The identifying outpoint of the output being released.
     lnrpc.OutPoint outpoint = 2;
+ string User_Id = 3;
 }
 
 message ReleaseOutputResponse {
@@ -185,9 +188,11 @@ message KeyReq {
     known as the "account".
     */
     int32 key_family = 2;
+ string User_Id = 3;
 }
 
 message AddrRequest {
+ string User_Id = 1;
     // No fields, as we always give out a p2wkh address.
 }
 message AddrResponse {
@@ -207,6 +212,7 @@ message Transaction {
     An optional label to save with the transaction. Limited to 500 characters.
     */
     string label = 2;
+ string User_Id = 3;
 }
 message PublishResponse {
     /*
@@ -233,6 +239,7 @@ message SendOutputsRequest {
 
     // An optional label for the transaction, limited to 500 characters.
     string label = 3;
+ string User_Id = 4;
 }
 message SendOutputsResponse {
     /*
@@ -246,6 +253,7 @@ message EstimateFeeRequest {
     The number of confirmations to shoot for when estimating the fee.
     */
     int32 conf_target = 1;
+ string User_Id = 2;
 }
 message EstimateFeeResponse {
     /*
@@ -385,6 +393,7 @@ message PendingSweep {
 }
 
 message PendingSweepsRequest {
+ string User_Id = 1;
 }
 
 message PendingSweepsResponse {
@@ -412,6 +421,7 @@ message BumpFeeRequest {
     if it has a negative yield.
     */
     bool force = 4;
+ string User_Id = 5;
 }
 
 message BumpFeeResponse {
@@ -450,6 +460,7 @@ message LabelTransactionRequest {
 
     // Whether to overwrite the existing label, if it is present.
     bool overwrite = 3;
+ string User_Id = 4;
 }
 
 message LabelTransactionResponse {

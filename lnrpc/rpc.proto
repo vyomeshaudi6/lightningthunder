@@ -559,6 +559,7 @@ message GetTransactionsRequest {
     default to this option.
     */
     int32 end_height = 2;
+ string User_Id = 3;
 }
 
 message TransactionDetails {
@@ -685,6 +686,7 @@ message SendRequest {
     fallback.
     */
     repeated FeatureBit dest_features = 15;
+ string User_Id = 16;
 }
 
 message SendResponse {
@@ -711,6 +713,7 @@ message SendToRouteRequest {
 
     // Route that should be used to attempt to complete the payment.
     Route route = 4;
+ string User_Id = 5;
 }
 
 message ChannelAcceptRequest {
@@ -760,6 +763,7 @@ message ChannelAcceptRequest {
     // A bit-field which the initiator uses to specify proposed channel
     // behavior.
     uint32 channel_flags = 13;
+ string User_Id = 14;
 }
 
 message ChannelAcceptResponse {
@@ -816,6 +820,7 @@ message EstimateFeeRequest {
     // The target number of blocks that this transaction should be confirmed
     // by.
     int32 target_conf = 2;
+ string User_Id = 3;
 }
 
 message EstimateFeeResponse {
@@ -840,6 +845,7 @@ message SendManyRequest {
 
     // An optional label for the transaction, limited to 500 characters.
     string label = 6;
+ string User_Id = 7;
 }
 message SendManyResponse {
     // The id of the transaction
@@ -870,6 +876,7 @@ message SendCoinsRequest {
 
     // An optional label for the transaction, limited to 500 characters.
     string label = 7;
+ string User_Id = 8;
 }
 message SendCoinsResponse {
     // The transaction ID of the transaction
@@ -882,6 +889,7 @@ message ListUnspentRequest {
 
     // The maximum number of confirmations to be included.
     int32 max_confs = 2;
+ string User_Id = 3;
 }
 message ListUnspentResponse {
     // A list of utxos
@@ -904,6 +912,7 @@ enum AddressType {
 message NewAddressRequest {
     // The address type
     AddressType type = 1;
+ string User_Id = 2;
 }
 message NewAddressResponse {
     // The newly generated wallet address
@@ -916,6 +925,7 @@ message SignMessageRequest {
     base64.
     */
     bytes msg = 1;
+ string User_Id = 2;
 }
 message SignMessageResponse {
     // The signature for the given message
@@ -931,6 +941,7 @@ message VerifyMessageRequest {
 
     // The signature to be verified over the given message
     string signature = 2;
+ string User_Id = 3;
 }
 message VerifyMessageResponse {
     // Whether the signature was valid over the given message
@@ -947,6 +958,7 @@ message ConnectPeerRequest {
     /* If set, the daemon will attempt to persistently connect to the target
      * peer. Otherwise, the call will be synchronous. */
     bool perm = 2;
+ string User_Id = 3;
 }
 message ConnectPeerResponse {
 }
@@ -954,6 +966,7 @@ message ConnectPeerResponse {
 message DisconnectPeerRequest {
     // The pubkey of the node to disconnect from
     string pub_key = 1;
+ string User_Id = 2;
 }
 message DisconnectPeerResponse {
 }
@@ -1181,6 +1194,7 @@ message ListChannelsRequest {
     empty, all channels will be returned.
     */
     bytes peer = 5;
+ string User_Id = 6;
 }
 message ListChannelsResponse {
     // The list of active channels
@@ -1331,6 +1345,7 @@ message ClosedChannelsRequest {
     bool breach = 4;
     bool funding_canceled = 5;
     bool abandoned = 6;
+ string User_Id = 7;
 }
 
 message ClosedChannelsResponse {
@@ -1410,6 +1425,7 @@ message ListPeersRequest {
     stored.
     */
     bool latest_error = 1;
+ string User_Id = 2;
 }
 message ListPeersResponse {
     // The list of currently connected peers
@@ -1432,6 +1448,7 @@ message PeerEvent {
 }
 
 message GetInfoRequest {
+ string User_Id = 1;
 }
 message GetInfoResponse {
     // The version of the LND software that the node is running.
@@ -1495,9 +1512,11 @@ message GetInfoResponse {
     announcements and invoices.
     */
     map<uint32, Feature> features = 19;
+ string User_Id = 21;
 }
 
 message GetRecoveryInfoRequest {
+ string User_Id = 1;
 }
 message GetRecoveryInfoResponse {
     // Whether the wallet is in recovery mode
@@ -1562,6 +1581,7 @@ message CloseChannelRequest {
     to the upfront shutdown addresss.
     */
     string delivery_address = 5;
+ string User_Id = 6;
 }
 
 message CloseStatusUpdate {
@@ -1672,6 +1692,7 @@ message OpenChannelRequest {
     the channel. It only applies to the remote party.
     */
     uint64 remote_max_value_in_flight_msat = 15;
+ string User_Id = 16;
 }
 message OpenStatusUpdate {
     oneof update {
@@ -1882,6 +1903,7 @@ message PendingHTLC {
 }
 
 message PendingChannelsRequest {
+ string User_Id = 1;
 }
 message PendingChannelsResponse {
     message PendingChannel {
@@ -2066,6 +2088,7 @@ message ChannelEventUpdate {
 }
 
 message WalletBalanceRequest {
+ string User_Id = 1;
 }
 message WalletBalanceResponse {
     // The balance of the wallet
@@ -2078,7 +2101,8 @@ message WalletBalanceResponse {
     int64 unconfirmed_balance = 3;
 }
 
-message ChannelBalanceRequest {
+message ChannelBalanceRequest{
+ string User_Id = 1;
 }
 message ChannelBalanceResponse {
     // Sum of channels balances denominated in satoshis
@@ -2194,6 +2218,7 @@ message QueryRoutesRequest {
     fallback.
     */
     repeated lnrpc.FeatureBit dest_features = 17;
+ string User_Id = 18;
 }
 
 message NodePair {
@@ -2352,6 +2377,7 @@ message NodeInfoRequest {
 
     // If true, will include all known channels associated with the node.
     bool include_channels = 2;
+ string User_Id = 3;
 }
 
 message NodeInfo {
@@ -2437,6 +2463,7 @@ message ChannelGraphRequest {
     channels, and public channels that are not yet announced to the network.
     */
     bool include_unannounced = 1;
+ string User_Id = 2;
 }
 
 // Returns a new instance of the directed channel graph.
@@ -2456,6 +2483,7 @@ enum NodeMetricType {
 message NodeMetricsRequest {
     // The requested node metrics.
     repeated NodeMetricType types = 1;
+ string User_Id = 2;
 }
 
 message NodeMetricsResponse {
@@ -2484,9 +2512,11 @@ message ChanInfoRequest {
     output index for the channel.
     */
     uint64 chan_id = 1 [jstype = JS_STRING];
+ string User_Id = 2;
 }
 
 message NetworkInfoRequest {
+ string User_Id = 1;
 }
 message NetworkInfo {
     uint32 graph_diameter = 1;
@@ -2511,6 +2541,7 @@ message NetworkInfo {
 }
 
 message StopRequest {
+ string User_Id = 1;
 }
 message StopResponse {
 }
@@ -2728,6 +2759,7 @@ message Invoice {
     [EXPERIMENTAL].
     */
     bool is_keysend = 25;
+ string User_Id = 26;
 }
 
 enum InvoiceHTLCState {
@@ -2801,6 +2833,7 @@ message PaymentHash {
     must be encoded as base64.
     */
     bytes r_hash = 2;
+ string User_Id = 3;
 }
 
 message ListInvoiceRequest {
@@ -2824,6 +2857,7 @@ message ListInvoiceRequest {
     specified index offset. This can be used to paginate backwards.
     */
     bool reversed = 6;
+ string User_Id = 7;
 }
 message ListInvoiceResponse {
     /*
@@ -2861,6 +2895,7 @@ message InvoiceSubscription {
     they weren't connected to the streaming RPC.
     */
     uint64 settle_index = 2;
+ string User_Id = 3;
 }
 
 enum PaymentFailureReason {
@@ -2958,7 +2993,7 @@ message Payment {
 
 message HTLCAttempt {
     enum HTLCStatus {
-        IN_FLIGHT = 0;
+        IN_FLIGHT = 0; 
         SUCCEEDED = 1;
         FAILED = 2;
     }
@@ -3012,6 +3047,7 @@ message ListPaymentsRequest {
     of the returned payments is always oldest first (ascending index order).
     */
     bool reversed = 4;
+ string User_Id = 5;
 }
 
 message ListPaymentsResponse {
@@ -3032,6 +3068,7 @@ message ListPaymentsResponse {
 }
 
 message DeleteAllPaymentsRequest {
+ string User_Id = 1;
 }
 
 message DeleteAllPaymentsResponse {
@@ -3039,6 +3076,7 @@ message DeleteAllPaymentsResponse {
 
 message AbandonChannelRequest {
     ChannelPoint channel_point = 1;
+ string User_Id = 2;
 }
 
 message AbandonChannelResponse {
@@ -3047,6 +3085,7 @@ message AbandonChannelResponse {
 message DebugLevelRequest {
     bool show = 1;
     string level_spec = 2;
+ string User_Id = 3;
 }
 message DebugLevelResponse {
     string sub_systems = 1;
@@ -3055,6 +3094,7 @@ message DebugLevelResponse {
 message PayReqString {
     // The payment request string to be decoded
     string pay_req = 1;
+ string User_Id = 2;
 }
 message PayReq {
     string destination = 1;
@@ -3070,6 +3110,7 @@ message PayReq {
     bytes payment_addr = 11;
     int64 num_msat = 12;
     map<uint32, Feature> features = 13;
+ string User_Id = 14;
 }
 
 enum FeatureBit {
@@ -3099,6 +3140,7 @@ message Feature {
 }
 
 message FeeReportRequest {
+ string User_Id = 1;
 }
 message ChannelFeeReport {
     // The short channel id that this fee report belongs to.
@@ -3165,6 +3207,7 @@ message PolicyUpdateRequest {
 
     // If true, min_htlc_msat is applied.
     bool min_htlc_msat_specified = 8;
+ string User_Id = 9;
 }
 message PolicyUpdateResponse {
 }
@@ -3187,6 +3230,7 @@ message ForwardingHistoryRequest {
 
     // The max number of events to return in the response to this query.
     uint32 num_max_events = 4;
+ string User_Id = 5;
 }
 message ForwardingEvent {
     // Timestamp is the time (unix epoch offset) that this circuit was
@@ -3239,6 +3283,7 @@ message ForwardingHistoryResponse {
 message ExportChannelBackupRequest {
     // The target channel point to obtain a back up for.
     ChannelPoint chan_point = 1;
+ string User_Id = 2;
 }
 
 message ChannelBackup {
@@ -3272,6 +3317,7 @@ message MultiChanBackup {
 }
 
 message ChanBackupExportRequest {
+ string User_Id = 1;
 }
 message ChanBackupSnapshot {
     /*
@@ -3307,6 +3353,7 @@ message RestoreChanBackupRequest {
         */
         bytes multi_chan_backup = 2;
     }
+ string User_Id = 3;
 }
 message RestoreBackupResponse {
 }
@@ -3327,6 +3374,7 @@ message MacaroonPermission {
 message BakeMacaroonRequest {
     // The list of permissions the new macaroon should grant.
     repeated MacaroonPermission permissions = 1;
+ string User_Id = 2;
 }
 message BakeMacaroonResponse {
     // The hex encoded macaroon, serialized in binary format.

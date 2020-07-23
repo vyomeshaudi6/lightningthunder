@@ -4,6 +4,10 @@
     "title": "signrpc/signer.proto",
     "version": "version not set"
   },
+  "schemes": [
+    "http",
+    "https"
+  ],
   "consumes": [
     "application/json"
   ],
@@ -21,12 +25,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/signrpcInputScriptResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -54,12 +52,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/signrpcSharedKeyResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -89,12 +81,6 @@
             "schema": {
               "$ref": "#/definitions/signrpcSignMessageResp"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -122,12 +108,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/signrpcSignResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -157,12 +137,6 @@
             "schema": {
               "$ref": "#/definitions/signrpcVerifyMessageResp"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -182,39 +156,6 @@
     }
   },
   "definitions": {
-    "protobufAny": {
-      "type": "object",
-      "properties": {
-        "type_url": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string",
-          "format": "byte"
-        }
-      }
-    },
-    "runtimeError": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string"
-        },
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/protobufAny"
-          }
-        }
-      }
-    },
     "signrpcInputScript": {
       "type": "object",
       "properties": {
@@ -256,6 +197,9 @@
         "key_loc": {
           "$ref": "#/definitions/signrpcKeyLocator",
           "description": "The key locator that identifies which key to use for signing. Either this\nor the raw bytes of the target key must be specified."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -271,6 +215,9 @@
           "type": "integer",
           "format": "int32",
           "description": "The precise index of the key being identified."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -285,6 +232,9 @@
         "key_loc": {
           "$ref": "#/definitions/signrpcKeyLocator",
           "description": "The optional key locator of the local key that should be used. If this\nparameter is not set then the node's identity private key will be used."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -348,6 +298,9 @@
         "key_loc": {
           "$ref": "#/definitions/signrpcKeyLocator",
           "description": "The key locator that identifies which key to use for signing."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -375,6 +328,9 @@
             "$ref": "#/definitions/signrpcSignDescriptor"
           },
           "description": "A set of sign descriptors, for each input to be signed."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -423,6 +379,9 @@
           "type": "string",
           "format": "byte",
           "description": "The public key the signature has to be valid for."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },

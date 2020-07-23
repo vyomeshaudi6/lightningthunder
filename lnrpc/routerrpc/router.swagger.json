@@ -4,6 +4,10 @@
     "title": "routerrpc/router.proto",
     "version": "version not set"
   },
+  "schemes": [
+    "http",
+    "https"
+  ],
   "consumes": [
     "application/json"
   ],
@@ -19,25 +23,18 @@
           "200": {
             "description": "A successful response.(streaming responses)",
             "schema": {
-              "type": "object",
-              "properties": {
-                "result": {
-                  "$ref": "#/definitions/routerrpcHtlcEvent"
-                },
-                "error": {
-                  "$ref": "#/definitions/runtimeStreamError"
-                }
-              },
-              "title": "Stream result of routerrpcHtlcEvent"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/x-stream-definitions/routerrpcHtlcEvent"
             }
           }
         },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Router"
         ]
@@ -53,14 +50,16 @@
             "schema": {
               "$ref": "#/definitions/routerrpcQueryMissionControlResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Router"
         ]
@@ -75,12 +74,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/routerrpcQueryProbabilityResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -108,6 +101,12 @@
             "required": true,
             "type": "string",
             "format": "int64"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -124,12 +123,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/routerrpcResetMissionControlResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -158,12 +151,6 @@
             "schema": {
               "$ref": "#/definitions/routerrpcBuildRouteResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -190,12 +177,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/routerrpcRouteFeeResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -224,12 +205,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcHTLCAttempt"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -255,22 +230,7 @@
           "200": {
             "description": "A successful response.(streaming responses)",
             "schema": {
-              "type": "object",
-              "properties": {
-                "result": {
-                  "$ref": "#/definitions/lnrpcPayment"
-                },
-                "error": {
-                  "$ref": "#/definitions/runtimeStreamError"
-                }
-              },
-              "title": "Stream result of lnrpcPayment"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/x-stream-definitions/lnrpcPayment"
             }
           }
         },
@@ -297,22 +257,7 @@
           "200": {
             "description": "A successful response.(streaming responses)",
             "schema": {
-              "type": "object",
-              "properties": {
-                "result": {
-                  "$ref": "#/definitions/lnrpcPayment"
-                },
-                "error": {
-                  "$ref": "#/definitions/runtimeStreamError"
-                }
-              },
-              "title": "Stream result of lnrpcPayment"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/x-stream-definitions/lnrpcPayment"
             }
           }
         },
@@ -332,6 +277,12 @@
             "required": false,
             "type": "boolean",
             "format": "boolean"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -832,6 +783,9 @@
             "format": "byte"
           },
           "description": "A list of hops that defines the route. This does not include the source hop\npubkey."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -944,6 +898,9 @@
             "format": "byte"
           },
           "description": "Any custom records that were present in the payload."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -1167,7 +1124,12 @@
       }
     },
     "routerrpcResetMissionControlRequest": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "User_Id": {
+          "type": "string"
+        }
+      }
     },
     "routerrpcResetMissionControlResponse": {
       "type": "object"
@@ -1193,6 +1155,9 @@
           "type": "string",
           "format": "int64",
           "description": "The amount one wishes to send to the target destination."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -1317,6 +1282,9 @@
           "type": "boolean",
           "format": "boolean",
           "description": "If set, only the final payment update is streamed back. Intermediate updates\nthat show which htlcs are still in flight are suppressed."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -1331,6 +1299,9 @@
         "route": {
           "$ref": "#/definitions/lnrpcRoute",
           "description": "Route that should be used to attempt to complete the payment."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -1350,27 +1321,6 @@
     },
     "routerrpcSettleEvent": {
       "type": "object"
-    },
-    "runtimeError": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string"
-        },
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/protobufAny"
-          }
-        }
-      }
     },
     "runtimeStreamError": {
       "type": "object",
@@ -1396,6 +1346,56 @@
           }
         }
       }
+    }
+  },
+  "x-stream-definitions": {
+    "lnrpcPayment": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/lnrpcPayment"
+        },
+        "error": {
+          "$ref": "#/definitions/runtimeStreamError"
+        }
+      },
+      "title": "Stream result of lnrpcPayment"
+    },
+    "routerrpcForwardHtlcInterceptRequest": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/routerrpcForwardHtlcInterceptRequest"
+        },
+        "error": {
+          "$ref": "#/definitions/runtimeStreamError"
+        }
+      },
+      "title": "Stream result of routerrpcForwardHtlcInterceptRequest"
+    },
+    "routerrpcHtlcEvent": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/routerrpcHtlcEvent"
+        },
+        "error": {
+          "$ref": "#/definitions/runtimeStreamError"
+        }
+      },
+      "title": "Stream result of routerrpcHtlcEvent"
+    },
+    "routerrpcPaymentStatus": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/routerrpcPaymentStatus"
+        },
+        "error": {
+          "$ref": "#/definitions/runtimeStreamError"
+        }
+      },
+      "title": "Stream result of routerrpcPaymentStatus"
     }
   }
 }
