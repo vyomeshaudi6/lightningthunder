@@ -50,7 +50,7 @@ import (
 )
 
 var (
-	cfg              *Config
+	
 	registeredChains = newChainRegistry()
 
 	ChanDB *channeldb.DB // channel.db
@@ -261,6 +261,9 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 	}
 
 	// Create the network-segmented directory for the channel database.
+graphDir := filepath.Join(cfg.DataDir,
+		defaultGraphSubDirname,
+		normalizeNetwork(activeNetParams.Name))
 	ltndLog.Infof("Opening the main database, this might take a few " +
 		"minutes...")
 
@@ -584,7 +587,7 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 		var towerClientDB *wtdb.ClientDB
 		if cfg.WtClient.Active {
 			var err error
-			towerClientDB, err = wtdb.OpenClientDB(cfg.localDatabaseDir())
+			towerClientDB, err = wtdb.OpenClientDB(cfg.localDatabaseDir(UserId))
 			if err != nil {
 				err := fmt.Errorf("unable to open watchtower client "+
 					"database: %v", err)
@@ -1232,8 +1235,8 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 			return nil, err
 		}
 		/////----channel.db -----
-		ChanDbBackend, err := cfg.DB.GetBackend(ctx,
-			cfg.localDatabaseDir(), cfg.networkName(),
+		chanDbBackend, err := cfg.DB.GetBackend(ctx,
+			cfg.localDatabaseDir(initMsg.UniqueId), cfg.networkName(),
 		)
 		if err != nil {
 			ltndLog.Error(err)
@@ -1243,7 +1246,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 		// Open the channeldb, which is dedicated to storing channel, and
 		// network related metadata.
 		ChanDB, err = channeldb.CreateWithBackend(
-			ChanDbBackend,
+			chanDbBackend,
 			channeldb.OptionSetRejectCacheSize(cfg.Caches.RejectCacheSize),
 			channeldb.OptionSetChannelCacheSize(cfg.Caches.ChannelCacheSize),
 			channeldb.OptionSetSyncFreelist(cfg.SyncFreelist),
@@ -1274,8 +1277,11 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	// unlocked. So we'll just return these passphrases.
 	case unlockMsg := <-pwService.UnlockMsgs:
 		/////----channel.db -----
-		ChanDbBackend, err := cfg.DB.GetBackend(ctx,
-			cfg.localDatabaseDir(), cfg.networkName(),
+         	graphDir = filepath.Join("test_data_PrvW",
+			defaultGraphSubDirname,
+			normalizeNetwork(activeNetParams.Name), unlockMsg.UniqueId)
+		chanDbBackend, err := cfg.DB.GetBackend(ctx,
+			cfg.localDatabaseDir(unlockMsg.UniqueId), cfg.networkName(),
 		)
 		if err != nil {
 			ltndLog.Error(err)
@@ -1285,7 +1291,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 		// Open the channeldb, which is dedicated to storing channel, and
 		// network related metadata.
 		ChanDB, err = channeldb.CreateWithBackend(
-			ChanDbBackend,
+			chanDbBackend,
 			channeldb.OptionSetRejectCacheSize(cfg.Caches.RejectCacheSize),
 			channeldb.OptionSetChannelCacheSize(cfg.Caches.ChannelCacheSize),
 			channeldb.OptionSetSyncFreelist(cfg.SyncFreelist),

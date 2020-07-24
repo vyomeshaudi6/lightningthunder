@@ -908,7 +908,7 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, error) {
 
 	// We'll now construct the network directory which will be where we
 	// store all the data specific to this chain/network.
-	cfg.networkDir = filepath.Join(
+	networkDir = filepath.Join(
 		"/home/vyomesh/gocode/dev/tstn1/test_data", defaultChainSubDirname,
 		cfg.registeredChains.PrimaryChain().String(),
 		normalizeNetwork(activeNetParams.Name),
@@ -1122,10 +1122,10 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, error) {
 
 // localDatabaseDir returns the default directory where the
 // local bolt db files are stored.
-func (c *Config) localDatabaseDir() string {
-	return filepath.Join(c.DataDir,
+func (c *Config) localDatabaseDir(UserId string) string {
+	return filepath.Join("test_data_PrvW",
 		defaultGraphSubDirname,
-		normalizeNetwork(activeNetParams.Name))
+		normalizeNetwork(activeNetParams.Name),UserId)
 }
 
 func (c *Config) networkName() string {

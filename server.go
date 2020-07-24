@@ -364,7 +364,7 @@ func newServer(cfg *Config, listenAddrs []net.Addr, chanDB *channeldb.DB,
 
 	// Initialize the sphinx router, placing it's persistent replay log in
 	// the same directory as the channel graph database.
-	sharedSecretPath := filepath.Join(cfg.localDatabaseDir(), "sphinxreplay.db")
+	sharedSecretPath := filepath.Join(cfg.localDatabaseDir(UserId), "sphinxreplay.db")
 	replayLog := htlcswitch.NewDecayedLog(sharedSecretPath, cc.chainNotifier)
 	sphinxRouter := sphinx.NewRouter(
 		nodeKeyECDH, activeNetParams.Params, replayLog,

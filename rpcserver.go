@@ -854,7 +854,7 @@ func (r *rpcServer) Start() error {
 
 	// Now spin up a network listener for each requested port and start a
 	// goroutine that serves REST with the created mux there.
-	for i, restEndpoint := range cfg.RESTListeners {
+	for i, restEndpoint := range r.cfg.RESTListeners {
 		if i == 0 {
 			i = i + 1
 			continue
