@@ -261,11 +261,7 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 	}
 
 	// Create the network-segmented directory for the channel database.
-graphDir := filepath.Join(cfg.DataDir,
-		defaultGraphSubDirname,
-		normalizeNetwork(activeNetParams.Name))
-	ltndLog.Infof("Opening the main database, this might take a few " +
-		"minutes...")
+
 
 	//startOpenTime := time.Now()
 	ctx := context.Background()
@@ -489,11 +485,7 @@ graphDir := filepath.Join(cfg.DataDir,
 		}
 		defer ChanDB.Close() // channel.db
 
-		// macaroons edit
-		// If a custom macaroon directory wasn't specified and the data
-		// directory has changed from the default path, then we'll also update
-		// the path for the macaroons to be generated.
-
+		//--code edit  giving custom macaroon path according to the user id for storing macaroon files of each respective node into their current directory
 		cfg.AdminMacPath = filepath.Join(
 			graphDir, DefaultAdminMacFilename,
 		)
@@ -502,6 +494,10 @@ graphDir := filepath.Join(cfg.DataDir,
 		)
 		cfg.InvoiceMacPath = filepath.Join(
 			graphDir, DefaultInvoiceMacFilename,
+		)
+		//--code edit  giving custom channelbackup  path according to the user id for storing backup files of each respective node into their current directory
+		cfg.BackupFilePath = filepath.Join(
+			graphDir, DefaultBackupFileName,
 		)
 
 		var macaroonService *macaroons.Service

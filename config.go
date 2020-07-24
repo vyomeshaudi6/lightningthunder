@@ -44,6 +44,7 @@ const (
 	DefaultAdminMacFilename   = "admin.macaroon"
 	DefaultReadMacFilename    = "readonly.macaroon"
 	DefaultInvoiceMacFilename = "invoice.macaroon"
+	DefaultBackupFileName = "channel.backup" //code edit
 	defaultLogLevel           = "info"
 	defaultLogDirname         = "logs"
 	defaultLogFilename        = "lnd.log"
