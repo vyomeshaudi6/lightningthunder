@@ -383,6 +383,7 @@ func openChannelPsbt(ctx *cli.Context, client lnrpc.LightningClient,
 						PendingChanId: pendingChanID[:],
 					},
 				},
+				User_Id: UniqueId,
 			}
 			err := sendFundingState(ctxc, ctx, cancelMsg)
 			if err != nil {
@@ -518,6 +519,7 @@ func openChannelPsbt(ctx *cli.Context, client lnrpc.LightningClient,
 						PendingChanId: pendingChanID[:],
 					},
 				},
+				User_Id: UniqueId,
 			}
 			err = sendFundingState(ctxc, ctx, verifyMsg)
 			if err != nil {
@@ -552,6 +554,7 @@ func openChannelPsbt(ctx *cli.Context, client lnrpc.LightningClient,
 						PendingChanId: pendingChanID[:],
 					},
 				},
+				User_Id: UniqueId,
 			}
 			err = sendFundingState(ctxc, ctx, finalizeMsg)
 			if err != nil {

@@ -1433,6 +1433,7 @@ message ListPeersResponse {
 }
 
 message PeerEventSubscription {
+
 }
 
 message PeerEvent {
@@ -1873,6 +1874,7 @@ message FundingTransitionMsg {
         */
         FundingPsbtFinalize psbt_finalize = 4;
     }
+	string User_Id = 5;
 }
 
 message FundingStateStepResp {

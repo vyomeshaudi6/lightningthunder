@@ -5688,20 +5688,7 @@ func (r *rpcServer) GetNetworkInfo(ctx context.Context,
 // a graceful shutdown of the daemon.
 func (r *rpcServer) StopDaemon(ctx context.Context,
 	in *lnrpc.StopRequest) (*lnrpc.StopResponse, error) {
-	//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
-	for i := 0; i < len(RpcserverInstances); i++ {
-		if in.User_Id == RpcserverInstances[i].server.User_Id {
-			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
-			r = RpcserverInstances[i]
-			break
-		}
-	}
-
-	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
-	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
-	if in.User_Id != r.server.User_Id {
-		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
-	}
+	
 	signal.RequestShutdown()
 	return &lnrpc.StopResponse{}, nil
 }
@@ -7037,7 +7024,20 @@ func (r *rpcServer) BakeMacaroon(ctx context.Context,
 // complete funding transactions.
 func (r *rpcServer) FundingStateStep(ctx context.Context,
 	in *lnrpc.FundingTransitionMsg) (*lnrpc.FundingStateStepResp, error) {
+//checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance.
+	for i := 0; i < len(RpcserverInstances); i++ {
+		if in.User_Id == RpcserverInstances[i].server.User_Id {
+			fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t", i)
+			r = RpcserverInstances[i]
+			break
+		}
+	}
 
+	// code added to check user id from lncli cmd and from server instance so as to pass data only if userid
+	//matched with the right port and id on server insatnce since each port has its own  seprate server instance
+	if in.User_Id != r.server.User_Id {
+		return nil, fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ", in.User_Id)
+	}
 	var pendingChanID [32]byte
 	switch {
 

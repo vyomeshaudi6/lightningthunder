@@ -15,7 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/v2/router/htlcevents": {
+    "/v2/router/htlcevents/{User_Id}": {
       "get": {
         "summary": "SubscribeHtlcEvents creates a uni-directional stream from the server to\nthe client which delivers a stream of htlc events.",
         "operationId": "SubscribeHtlcEvents",
@@ -30,8 +30,8 @@
         "parameters": [
           {
             "name": "User_Id",
-            "in": "query",
-            "required": false,
+            "in": "path",
+            "required": true,
             "type": "string"
           }
         ],
@@ -40,32 +40,7 @@
         ]
       }
     },
-    "/v2/router/mc": {
-      "get": {
-        "summary": "QueryMissionControl exposes the internal mission control state to callers.\nIt is a development feature.",
-        "operationId": "QueryMissionControl",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/routerrpcQueryMissionControlResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "User_Id",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Router"
-        ]
-      }
-    },
-    "/v2/router/mc/probability/{from_node}/{to_node}/{amt_msat}": {
+    "/v2/router/mc/probability/{from_node}/{to_node}/{amt_msat}/{User_Id}": {
       "get": {
         "summary": "QueryProbability returns the current success probability estimate for a\ngiven node pair and amount.",
         "operationId": "QueryProbability",
@@ -104,8 +79,8 @@
           },
           {
             "name": "User_Id",
-            "in": "query",
-            "required": false,
+            "in": "path",
+            "required": true,
             "type": "string"
           }
         ],
@@ -114,7 +89,7 @@
         ]
       }
     },
-    "/v2/router/mc/reset": {
+    "/v2/router/mc/reset/{User_Id}": {
       "post": {
         "summary": "ResetMissionControl clears all mission control state and starts with a clean\nslate.",
         "operationId": "ResetMissionControl",
@@ -127,6 +102,12 @@
           }
         },
         "parameters": [
+          {
+            "name": "User_Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "body",
             "in": "body",
@@ -141,26 +122,24 @@
         ]
       }
     },
-    "/v2/router/route": {
-      "post": {
-        "summary": "BuildRoute builds a fully specified route based on a list of hop public\nkeys. It retrieves the relevant channel policies from the graph in order to\ncalculate the correct fees and time locks.",
-        "operationId": "BuildRoute",
+    "/v2/router/mc/{User_Id}": {
+      "get": {
+        "summary": "QueryMissionControl exposes the internal mission control state to callers.\nIt is a development feature.",
+        "operationId": "QueryMissionControl",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/routerrpcBuildRouteResponse"
+              "$ref": "#/definitions/routerrpcQueryMissionControlResponse"
             }
           }
         },
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
+            "name": "User_Id",
+            "in": "path",
             "required": true,
-            "schema": {
-              "$ref": "#/definitions/routerrpcBuildRouteRequest"
-            }
+            "type": "string"
           }
         ],
         "tags": [
@@ -168,7 +147,7 @@
         ]
       }
     },
-    "/v2/router/route/estimatefee": {
+    "/v2/router/route/estimatefee/{User_Id}": {
       "post": {
         "summary": "EstimateRouteFee allows callers to obtain a lower bound w.r.t how much it\nmay cost to send an HTLC to the target end destination.",
         "operationId": "EstimateRouteFee",
@@ -181,6 +160,12 @@
           }
         },
         "parameters": [
+          {
+            "name": "User_Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "body",
             "in": "body",
@@ -195,7 +180,7 @@
         ]
       }
     },
-    "/v2/router/route/send": {
+    "/v2/router/route/send/{User_Id}": {
       "post": {
         "summary": "SendToRouteV2 attempts to make a payment via the specified route. This\nmethod differs from SendPayment in that it allows users to specify a full\nroute manually. This can be used for things like rebalancing, and atomic\nswaps.",
         "operationId": "SendToRouteV2",
@@ -208,6 +193,12 @@
           }
         },
         "parameters": [
+          {
+            "name": "User_Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "body",
             "in": "body",
@@ -222,7 +213,40 @@
         ]
       }
     },
-    "/v2/router/send": {
+    "/v2/router/route/{User_Id}": {
+      "post": {
+        "summary": "BuildRoute builds a fully specified route based on a list of hop public\nkeys. It retrieves the relevant channel policies from the graph in order to\ncalculate the correct fees and time locks.",
+        "operationId": "BuildRoute",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/routerrpcBuildRouteResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/routerrpcBuildRouteRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Router"
+        ]
+      }
+    },
+    "/v2/router/send/{User_Id}": {
       "post": {
         "summary": "SendPaymentV2 attempts to route a payment described by the passed\nPaymentRequest to the final destination. The call returns a stream of\npayment updates.",
         "operationId": "SendPaymentV2",
@@ -235,6 +259,12 @@
           }
         },
         "parameters": [
+          {
+            "name": "User_Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "body",
             "in": "body",
@@ -249,7 +279,7 @@
         ]
       }
     },
-    "/v2/router/track/{payment_hash}": {
+    "/v2/router/track/{payment_hash}/{User_Id}": {
       "get": {
         "summary": "TrackPaymentV2 returns an update stream for the payment identified by the\npayment hash.",
         "operationId": "TrackPaymentV2",
@@ -271,18 +301,18 @@
             "format": "byte"
           },
           {
+            "name": "User_Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
             "name": "no_inflight_updates",
             "description": "If set, only the final payment update is streamed back. Intermediate updates\nthat show which htlcs are still in flight are suppressed.",
             "in": "query",
             "required": false,
             "type": "boolean",
             "format": "boolean"
-          },
-          {
-            "name": "User_Id",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [

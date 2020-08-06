@@ -40,6 +40,24 @@ func request_ChainNotifier_RegisterConfirmationsNtfn_0(ctx context.Context, mars
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["User_Id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "User_Id")
+	}
+
+	protoReq.User_Id, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "User_Id", err)
+	}
+
 	stream, err := client.RegisterConfirmationsNtfn(ctx, &protoReq)
 	if err != nil {
 		return nil, metadata, err
@@ -65,6 +83,24 @@ func request_ChainNotifier_RegisterSpendNtfn_0(ctx context.Context, marshaler ru
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["User_Id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "User_Id")
+	}
+
+	protoReq.User_Id, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "User_Id", err)
+	}
+
 	stream, err := client.RegisterSpendNtfn(ctx, &protoReq)
 	if err != nil {
 		return nil, metadata, err
@@ -88,6 +124,24 @@ func request_ChainNotifier_RegisterBlockEpochNtfn_0(ctx context.Context, marshal
 	}
 	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["User_Id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "User_Id")
+	}
+
+	protoReq.User_Id, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "User_Id", err)
 	}
 
 	stream, err := client.RegisterBlockEpochNtfn(ctx, &protoReq)
@@ -205,11 +259,11 @@ func RegisterChainNotifierHandlerClient(ctx context.Context, mux *runtime.ServeM
 }
 
 var (
-	pattern_ChainNotifier_RegisterConfirmationsNtfn_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v2", "chainnotifier", "register", "confirmations"}, ""))
+	pattern_ChainNotifier_RegisterConfirmationsNtfn_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v2", "chainnotifier", "register", "confirmations", "User_Id"}, ""))
 
-	pattern_ChainNotifier_RegisterSpendNtfn_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v2", "chainnotifier", "register", "spends"}, ""))
+	pattern_ChainNotifier_RegisterSpendNtfn_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v2", "chainnotifier", "register", "spends", "User_Id"}, ""))
 
-	pattern_ChainNotifier_RegisterBlockEpochNtfn_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v2", "chainnotifier", "register", "blocks"}, ""))
+	pattern_ChainNotifier_RegisterBlockEpochNtfn_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v2", "chainnotifier", "register", "blocks", "User_Id"}, ""))
 )
 
 var (

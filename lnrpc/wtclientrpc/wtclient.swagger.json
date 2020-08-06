@@ -15,65 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/v2/watchtower/client": {
-      "get": {
-        "summary": "ListTowers returns the list of watchtowers registered with the client.",
-        "operationId": "ListTowers",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/wtclientrpcListTowersResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "include_sessions",
-            "description": "Whether we should include sessions with the watchtower in the response.",
-            "in": "query",
-            "required": false,
-            "type": "boolean",
-            "format": "boolean"
-          },
-          {
-            "name": "User_Id",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "WatchtowerClient"
-        ]
-      },
-      "post": {
-        "summary": "AddTower adds a new watchtower reachable at the given address and\nconsiders it for new sessions. If the watchtower already exists, then\nany new addresses included will be considered when dialing it for\nsession negotiations and backups.",
-        "operationId": "AddTower",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/wtclientrpcAddTowerResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/wtclientrpcAddTowerRequest"
-            }
-          }
-        ],
-        "tags": [
-          "WatchtowerClient"
-        ]
-      }
-    },
-    "/v2/watchtower/client/info/{pubkey}": {
+    "/v2/watchtower/client/info/{pubkey}/{User_Id}": {
       "get": {
         "summary": "GetTowerInfo retrieves information for a registered watchtower.",
         "operationId": "GetTowerInfo",
@@ -95,18 +37,18 @@
             "format": "byte"
           },
           {
+            "name": "User_Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
             "name": "include_sessions",
             "description": "Whether we should include sessions with the watchtower in the response.",
             "in": "query",
             "required": false,
             "type": "boolean",
             "format": "boolean"
-          },
-          {
-            "name": "User_Id",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -114,7 +56,7 @@
         ]
       }
     },
-    "/v2/watchtower/client/policy": {
+    "/v2/watchtower/client/policy/{User_Id}": {
       "get": {
         "summary": "Policy returns the active watchtower client policy configuration.",
         "operationId": "Policy",
@@ -129,8 +71,8 @@
         "parameters": [
           {
             "name": "User_Id",
-            "in": "query",
-            "required": false,
+            "in": "path",
+            "required": true,
             "type": "string"
           }
         ],
@@ -139,7 +81,7 @@
         ]
       }
     },
-    "/v2/watchtower/client/stats": {
+    "/v2/watchtower/client/stats/{User_Id}": {
       "get": {
         "summary": "Stats returns the in-memory statistics of the client since startup.",
         "operationId": "Stats",
@@ -154,9 +96,73 @@
         "parameters": [
           {
             "name": "User_Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "WatchtowerClient"
+        ]
+      }
+    },
+    "/v2/watchtower/client/{User_Id}": {
+      "get": {
+        "summary": "ListTowers returns the list of watchtowers registered with the client.",
+        "operationId": "ListTowers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/wtclientrpcListTowersResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "include_sessions",
+            "description": "Whether we should include sessions with the watchtower in the response.",
             "in": "query",
             "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          }
+        ],
+        "tags": [
+          "WatchtowerClient"
+        ]
+      },
+      "post": {
+        "summary": "AddTower adds a new watchtower reachable at the given address and\nconsiders it for new sessions. If the watchtower already exists, then\nany new addresses included will be considered when dialing it for\nsession negotiations and backups.",
+        "operationId": "AddTower",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/wtclientrpcAddTowerResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "path",
+            "required": true,
             "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/wtclientrpcAddTowerRequest"
+            }
           }
         ],
         "tags": [

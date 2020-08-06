@@ -585,7 +585,12 @@ func newServer(cfg *Config, listenAddrs []net.Addr, chanDB *channeldb.DB,
 			externalIPStrings = append(externalIPStrings, ips...)
 		}
 	}
-
+	//appending listen address in config to externalip:listenaddr so that peer port can be broadcasted with correct listen port same as in config 
+	//var portStr string
+	//for _, listenAddr := range listenAddrs {
+	//_, portStr, err = net.SplitHostPort(listenAddr.String())
+	//return nil, err
+	//}
 	// If external IP addresses have been specified, add those to the list
 	// of this server's addresses.
 	externalIPs, err := lncfg.NormalizeAddresses(

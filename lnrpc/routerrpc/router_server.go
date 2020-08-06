@@ -150,9 +150,12 @@ func fileExists(name string) bool {
 func New(cfg Config, UserId string) (*Server, lnrpc.MacaroonPerms, error) {
 	// If the path of the router macaroon wasn't generated, then we'll
 	// assume that it's found at the default network directory.
+	graphDir := filepath.Join("test_data_PrvW",
+			"graph",
+			"testnet", UserId)
 	if cfg.RouterMacPath == "" {
 		cfg.RouterMacPath = filepath.Join(
-			cfg.NetworkDir, DefaultRouterMacFilename,
+			graphDir, DefaultRouterMacFilename,
 		)
 	}
 

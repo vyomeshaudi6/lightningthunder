@@ -15,7 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/v2/autopilot/modify": {
+    "/v2/autopilot/modify/{User_Id}": {
       "post": {
         "summary": "ModifyStatus is used to modify the status of the autopilot agent, like\nenabling or disabling it.",
         "operationId": "ModifyStatus",
@@ -28,6 +28,12 @@
           }
         },
         "parameters": [
+          {
+            "name": "User_Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "body",
             "in": "body",
@@ -42,7 +48,7 @@
         ]
       }
     },
-    "/v2/autopilot/scores": {
+    "/v2/autopilot/scores/{User_Id}": {
       "get": {
         "summary": "QueryScores queries all available autopilot heuristics, in addition to any\nactive combination of these heruristics, for the scores they would give to\nthe given nodes.",
         "operationId": "QueryScores",
@@ -55,6 +61,12 @@
           }
         },
         "parameters": [
+          {
+            "name": "User_Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "pubkeys",
             "in": "query",
@@ -72,12 +84,6 @@
             "required": false,
             "type": "boolean",
             "format": "boolean"
-          },
-          {
-            "name": "User_Id",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -97,6 +103,12 @@
         },
         "parameters": [
           {
+            "name": "User_Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
@@ -110,7 +122,7 @@
         ]
       }
     },
-    "/v2/autopilot/status": {
+    "/v2/autopilot/status/{User_Id}": {
       "get": {
         "summary": "Status returns whether the daemon's autopilot agent is active.",
         "operationId": "Status",
@@ -125,8 +137,8 @@
         "parameters": [
           {
             "name": "User_Id",
-            "in": "query",
-            "required": false,
+            "in": "path",
+            "required": true,
             "type": "string"
           }
         ],

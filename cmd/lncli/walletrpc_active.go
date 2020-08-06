@@ -331,6 +331,7 @@ func listSweeps(ctx *cli.Context) error {
 	resp, err := client.ListSweeps(
 		context.Background(), &walletrpc.ListSweepsRequest{
 			Verbose: ctx.IsSet("verbose"),
+			User_Id: UniqueId
 		},
 	)
 	if err != nil {

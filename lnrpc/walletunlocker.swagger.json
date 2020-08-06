@@ -15,7 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/v1/changepassword": {
+    "/v1/changepassword/{User_Id}": {
       "post": {
         "summary": "lncli: `changepassword`\nChangePassword changes the password of the encrypted wallet. This will\nautomatically unlock the wallet database if successful.",
         "operationId": "ChangePassword",
@@ -28,6 +28,12 @@
           }
         },
         "parameters": [
+          {
+            "name": "User_Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "body",
             "in": "body",
@@ -42,7 +48,7 @@
         ]
       }
     },
-    "/v1/genseed": {
+    "/v1/genseed/{User_Id}": {
       "get": {
         "summary": "GenSeed is the first method that should be used to instantiate a new lnd\ninstance. This method allows a caller to generate a new aezeed cipher seed\ngiven an optional passphrase. If provided, the passphrase will be necessary\nto decrypt the cipherseed to expose the internal wallet seed.",
         "description": "Once the cipherseed is obtained and verified by the user, the InitWallet\nmethod should be used to commit the newly generated seed, and create the\nwallet.",
@@ -56,6 +62,12 @@
           }
         },
         "parameters": [
+          {
+            "name": "User_Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "aezeed_passphrase",
             "description": "aezeed_passphrase is an optional user provided passphrase that will be used\nto encrypt the generated aezeed cipher seed. When using REST, this field\nmust be encoded as base64.",
@@ -71,12 +83,6 @@
             "required": false,
             "type": "string",
             "format": "byte"
-          },
-          {
-            "name": "User_Id",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -84,7 +90,7 @@
         ]
       }
     },
-    "/v1/initwallet": {
+    "/v1/initwallet/{User_Id}": {
       "post": {
         "summary": "InitWallet is used when lnd is starting up for the first time to fully\ninitialize the daemon and its internal wallet. At the very least a wallet\npassword must be provided. This will be used to encrypt sensitive material\non disk.",
         "description": "In the case of a recovery scenario, the user can also specify their aezeed\nmnemonic and passphrase. If set, then the daemon will use this prior state\nto initialize its internal wallet.\n\nAlternatively, this can be used along with the GenSeed RPC to obtain a\nseed, then present it to the user. Once it has been verified by the user,\nthe seed can be fed into this RPC in order to commit the new wallet.",
@@ -99,6 +105,12 @@
         },
         "parameters": [
           {
+            "name": "User_Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
@@ -112,7 +124,7 @@
         ]
       }
     },
-    "/v1/unlockwallet": {
+    "/v1/unlockwallet/{User_Id}": {
       "post": {
         "summary": "lncli: `unlock`\nUnlockWallet is used at startup of lnd to provide a password to unlock\nthe wallet database.",
         "operationId": "UnlockWallet",
@@ -125,6 +137,12 @@
           }
         },
         "parameters": [
+          {
+            "name": "User_Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "body",
             "in": "body",

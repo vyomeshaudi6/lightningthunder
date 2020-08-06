@@ -433,6 +433,7 @@ message ListSweepsRequest {
     will be returned.
     */
     bool verbose = 1;
+string User_Id = 2;
 }
 
 message ListSweepsResponse {
