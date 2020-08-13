@@ -225,3 +225,5 @@ Output:
     "last_index_offset":"1",
     "first_index_offset":"1"
     }
+
+For other API calls  please refer to [LND REST API Reference](https://api.lightning.community/?shell#lnd-rest-api-reference),with the similar User_Id/PORT changes respectively in URI's.
