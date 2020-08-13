@@ -211,7 +211,7 @@ Output:
     "first_index_offset": <string>, 
     }
   
-### 2.) GET /v1/invoices
+### 2.) POST /v1/invoices
 
 Replace `User_Id` with correct value.
 
