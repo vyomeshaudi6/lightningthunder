@@ -216,7 +216,7 @@ Output:
 Replace `User_Id` with correct value.
 
     ~/gocode/dev$  MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 /home/ubuntu/gocode/dev/test_data_PrvW/graph/testnet/User_Id/admin.macaroon)"
-    ~/gocode/dev$  curl -X POST --cacert /home/vyomesh/.lnd/tls.cert --header "$MACAROON_HEADER" https://localhost:10004/v1/invoices/User_Id -d '{ "value":"100" }'
+    ~/gocode/dev$  curl -X POST --cacert ~/.lnd/tls.cert --header "$MACAROON_HEADER" https://localhost:10004/v1/invoices/User_Id -d '{ "value":"100" }'
 
 Output:
 
