@@ -47,7 +47,7 @@ func Start(extraArgs string, unlockerReady, rpcReady Callback) {
 
 	// Load the configuration, and parse the extra arguments as command
 	// line options. This function will also set up logging properly.
-	loadedConfig, err := lnd.LoadConfig()
+	loadedConfig, err := lnd.LoadConfig()//code edit
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

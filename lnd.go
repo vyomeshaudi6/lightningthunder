@@ -61,7 +61,7 @@ var (
 	graphDir           string
 	RpcserverInstances []*rpcServer
 	UserId             string // added userid for multiple server instances and passed to new server func
-
+	cfg		   *Config
 )
 
 // WalletUnlockerAuthOptions returns a list of DialOptions that can be used to
@@ -201,7 +201,16 @@ type rpcListeners func() ([]*ListenerWithSignal, func(), error)
 // validated main configuration struct and an optional listener config struct.
 // This function starts all main system components then blocks until a signal
 // is received on the shutdownChan at which point everything is shut down again.
-func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
+func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
+	// Hook interceptor for os signals.
+	signal.Intercept()	
+	// Load the configuration, and parse any command line options. This
+	// function will also set up logging properly.
+	loadedConfig, err := LoadConfig()
+	if err != nil {
+		return err
+	}
+	cfg = loadedConfig
 	defer func() {
 		ltndLog.Info("Shutdown complete")
 		err := cfg.LogWriter.Close()
@@ -442,7 +451,7 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 	// started with the --noseedbackup flag, we use the default password
 	// for wallet encryption.
 	// for loop edit
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 100; i++ {
 		// If the user didn't request a seed, then we'll manually assume a
 		// wallet birthday of now, as otherwise the seed would've specified
 		// this information.
@@ -504,7 +513,7 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 		if !cfg.NoMacaroons {
 			// Create the macaroon authentication/authorization service.
 			macaroonService, err = macaroons.NewService(
-				graphDir, macaroons.IPLockChecker,
+				graphDir , macaroons.IPLockChecker,
 			)
 			if err != nil {
 				err := fmt.Errorf("unable to set up macaroon "+
@@ -1094,7 +1103,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	// deleted within it and recreated when successfully changing the
 	// wallet's password.
 	/*macaroonFiles := []string{
-		filepath.Join(cfg.graphDir, macaroons.DBFilename),
+		filepath.Join(graphDir, macaroons.DBFilename),
 		cfg.AdminMacPath, cfg.ReadMacPath, cfg.InvoiceMacPath,
 	}
 	*/
@@ -1208,7 +1217,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 			defaultGraphSubDirname,
 			normalizeNetwork(activeNetParams.Name), initMsg.UniqueId)
 		netDir := graphDir
-
+		
 		//code modify by -----end--------
 		loader := wallet.NewLoader(
 			activeNetParams.Params, netDir, !cfg.SyncFreelist,
@@ -1260,6 +1269,13 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 		ltndLog.Infof("lnd.go after opening channeldb.open channeled opened success")
 		// added userid for multiple server instance
 		UserId = initMsg.UniqueId
+		
+		//custom configuration code edit for each node
+		//loadedConfig, err := LoadConfig(UserId) //returns a new instance of config according
+		//if err != nil {
+		//return nil,err
+		//}
+		//cfg = loadedConfig		
 
 		return &WalletUnlockParams{
 			Password:       password,
@@ -1305,6 +1321,13 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 		ltndLog.Infof("lnd.go after opening channeldb.open channeled opened success")
 		// added userid for multiple server instance
 		UserId = unlockMsg.UniqueId
+
+		//custom configuration code edit for each node
+		//cfg, err = LoadConfig(UserId) //returns a new instance of config accordingly
+		//if err != nil {
+		//return nil,err
+		//}
+		//cfg = loadedConfig
 		return &WalletUnlockParams{
 			Password:       unlockMsg.Passphrase,
 			RecoveryWindow: unlockMsg.RecoveryWindow,

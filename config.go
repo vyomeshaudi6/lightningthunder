@@ -393,11 +393,27 @@ func DefaultConfig() Config {
 func LoadConfig() (*Config, error) {
 	// Pre-parse the command line options to pick up an alternative config
 	// file.
+
 	preCfg := DefaultConfig()
 	if _, err := flags.Parse(&preCfg); err != nil {
 		return nil, err
 	}
+	
+/*	//code edit for custom lnd config for each node
+	if(User_Id != ""){
+		fmt.Println("entered cnfig if condition")
+	  
+	 
+	}
+customlndConfigDir := filepath.Join("~/gocode","dev","test_data_PrvW",
+			defaultGraphSubDirname,
+			"simnet", User_Id,lncfg.DefaultConfigFilename)
 
+configFilePath := customlndConfigDir
+	 configFileDir := filepath.Join("~/gocode","dev","test_data_PrvW",
+			defaultGraphSubDirname,
+			"simnet", User_Id)
+*/
 	// Show the version and exit if the version flag was specified.
 	appName := filepath.Base(os.Args[0])
 	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
@@ -415,16 +431,17 @@ func LoadConfig() (*Config, error) {
 	configFileDir := CleanAndExpandPath(preCfg.LndDir)
 	configFilePath := CleanAndExpandPath(preCfg.ConfigFile)
 	if configFileDir != DefaultLndDir {
-		if configFilePath == DefaultConfigFile {
+		if configFilePath == DefaultConfigFile {   
 			configFilePath = filepath.Join(
 				configFileDir, lncfg.DefaultConfigFilename,
 			)
 		}
 	}
-
+	//-------------fmt.Println("preCfg.ConfigFile : %t , configFilePath : %t , preCfg.LndDir %t",preCfg.ConfigFile,configFilePath ,preCfg.LndDir)
 	// Next, load any additional configuration options from the file.
 	var configFileError error
 	cfg := preCfg
+	
 	if err := flags.IniParse(configFilePath, &cfg); err != nil {
 		// If it's a parsing related error, then we'll return
 		// immediately, otherwise we can proceed as possibly the config
