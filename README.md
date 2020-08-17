@@ -95,3 +95,135 @@ preferably [encrypted using our designated PGP key
 ## Further reading
 * [Step-by-step send payment guide with docker](https://github.com/lightningnetwork/lnd/tree/master/docker)
 * [Contribution guide](https://github.com/lightningnetwork/lnd/blob/master/docs/code_contribution_guidelines.md)
+
+## CUSTOM LND DESCRIPTION
+
+Directory structure
+-------------------
+    btcd                                                Contains Blockchain, btcd.conf etc.
+    lnd                                                 Contains lnd.conf, tls cert etc.
+    gocode/dev/test_data_PrvW/graph/simnet/             Directory containing Nodes active on simnet network.
+    gocode/dev/test_data_PrvW/graph/testnet/            Directory containing Nodes active on testnet network.
+    graph/simnet/User_Id/                               Contains channel.db, wallet.db, sphinxreplay.db, macaroons of respective userid node on simnet.
+    graph/testnet/User_Id/                              Contains channel.db, wallet.db, sphinxreplay.db, macaroons of respective userid node on testnet.
+
+ Custom Ports
+ ------------
+ Custom Ports can be changed accordingly in lnd.conf.
+ 
+    0.0.0.0:10001           RPC listener for wallet actions(Create/Unlock).
+    0.0.0.0:10003           REST listener for wallet actions(Create/Unlock).
+    0.0.0.0:10002           RPC listener for Lightning service calls(getinfo/sendpayment....)
+    0.0.0.0:10004           REST listener for Lightning service calls(getinfo/sendpayment....)
+    0.0.0.0:10005           Listener port for the peers to open channel with the respective node got unlocked in the queue first.
+    0.0.0.0:10006           Listener port for the peers to open channel with the respective node got unlocked in the queue second.
+    0.0.0.0:10007           Listener port for the peers to open channel with the respective node got unlocked in the queue third.
+    So on...
+
+LND REST API REFERENCE
+----------------------
+## Create wallet
+
+### 1.) /v1/genseed
+Once the cipherseed is obtained and verified by the user, the InitWallet method should be used to commit the newly generated seed, and create the wallet.
+
+Replace `User_Id` with correct value.
+
+    
+    ~/gocode/dev$  curl -X GET --insecure --cacert ~/.lnd/tls.cert  https://127.0.0.1:10003/v1/genseed/User_Id
+
+Output:
+
+    { 
+    "cipher_seed_mnemonic": ["abandon","clean","mammal","rebel","again","call","outside","crawl","embrace","buddy","boy","plastic","core","fruit","chicken","warm","village","like","prevent","pudding","laptop","woman","height","little"], 
+    "enciphered_seed": <byte>, 
+    }
+
+### 2.) /v1/initwallet
+This can be used along with the GenSeed RPC to obtain a seed, then present it to the user. Once it has been verified by the user, the seed can be fed into this RPC in order to commit the new wallet.he wallet.
+
+Replace `User_Id , wallet_password, cipher_seed_mnemonic` with correct value.
+
+    
+    ~/gocode/dev$  curl -X POST -d '{"wallet_password":"NzE3NzY1NzI3NDc5NzU2OTBhCg==","cipher_seed_mnemonic":["abandon","clean","mammal","rebel","again","call","outside","crawl","embrace","buddy","boy","plastic","core","fruit","chicken","warm","village","like","prevent","pudding","laptop","woman","height","little"]}' --insecure --cacert ~/.lnd/tls.cert  https://127.0.0.1:10003/v1/initwallet/User_Id
+
+Output:
+
+    { 
+    }
+    
+## Unlock wallet
+### 1.) /v1/unlockwallet
+
+Replace `User_Id, wallet_password` with correct value.
+
+    ~/gocode/dev$  MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 /home/ubuntu/gocode/dev/test_data_PrvW/graph/testnet/User_Id/admin.macaroon)"
+    ~/gocode/dev$  curl -X POST -d '{"wallet_password":"NzE3NzY1NzI3NDc5NzU2OTBhCg=="}' --insecure --cacert ~/.lnd/tls.cert --header "$MACAROON_HEADER" https://127.0.0.1:10003/v1/unlockwallet/User_Id
+
+Output:
+
+    { 
+    }
+    
+## Lightning Service Calls
+### 1.) /v1/getinfo
+
+Replace `User_Id` with correct value.
+
+    ~/gocode/dev$  MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 /home/ubuntu/gocode/dev/test_data_PrvW/graph/testnet/User_Id/admin.macaroon)"
+    ~/gocode/dev$  curl -X GET  --insecure --cacert ~/.lnd/tls.cert --header "$MACAROON_HEADER" https://127.0.0.1:10004/v1/getinfo/User_Id
+
+Output:
+
+    { 
+    "version": <string>, 
+    "commit_hash": <string>, 
+    "identity_pubkey": <string>, 
+    "alias": <string>, 
+    "color": <string>, 
+    "num_pending_channels": <int64>, 
+    "num_active_channels": <int64>, 
+    "num_inactive_channels": <int64>, 
+    "num_peers": <int64>, 
+    "block_height": <int64>, 
+    "block_hash": <string>, 
+    "best_header_timestamp": <string>, 
+    "synced_to_chain": <boolean>, 
+    "synced_to_graph": <boolean>, 
+    "testnet": <boolean>, 
+    "chains": <array lnrpcChain>, 
+    "uris": <array string>, 
+    "features": <object>, 
+    }
+    
+ ### 2.) GET /v1/invoices
+
+Replace `User_Id` with correct value.
+
+    ~/gocode/dev$  MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 /home/ubuntu/gocode/dev/test_data_PrvW/graph/testnet/User_Id/admin.macaroon)"
+    ~/gocode/dev$  curl -X GET  --insecure --cacert ~/.lnd/tls.cert --header "$MACAROON_HEADER" https://127.0.0.1:10004/v1/invoices/User_Id
+
+Output:
+
+    { 
+    "invoices": <array lnrpcInvoice>, 
+    "last_index_offset": <string>, 
+    "first_index_offset": <string>, 
+    }
+  
+### 3.) POST /v1/invoices
+
+Replace `User_Id` with correct value.
+
+    ~/gocode/dev$  MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 /home/ubuntu/gocode/dev/test_data_PrvW/graph/testnet/User_Id/admin.macaroon)"
+    ~/gocode/dev$  curl -X POST --cacert ~/.lnd/tls.cert --header "$MACAROON_HEADER" https://localhost:10004/v1/invoices/User_Id -d '{ "value":"100" }'
+
+Output:
+
+    {
+    "invoices":[{"memo":"","r_preimage":"aWGRZd8wQFNdcqY7JcMoltqTlkqIYx45r526eP5o87I=","r_hash":"wNDjbIRmmKAXKlpG+PRWNt9V94hwIIxq+Zx+BhkD7v8=","value":"100","value_msat":"100000      ","settled":false,"creation_date":"1596721759","settle_date":"0","payment_request":"lnsb1u1p0jczjlpp5crgwxmyyv6v2q9e2tfr03azkxm04taugwqsgc6hen3lqvxgramlsdqqcqzpgs  p5tp72r9xjkjqnp4j3y6rmqeht6whh7x5zq42d92x7rn0y0jqzt57s9qy9qsqzrk3yh79nj6tfthjskmjhu6uc8mvuljpz2hh2q2l7xxtwkypf7dhcev3ja59mqf4lm8rxsprn6254yk7wdfxhw3c6ejav7sm3jd3gqgq54suqj","description_hash":null,"expiry":"3600","fallback_addr":"","cltv_expiry":"40","route_hints":[],"private":false,"add_index":"1","settle_index":"0","amt_paid":"0","amt_paid_sat":"0","amt_paid_msat":"0","state":"OPEN","htlcs":[],"features":{"9":{"name":"tlv-onion","is_required":false,"is_known":true},"15":{"name":"payment-addr","is_required":false,"is_known":true},"17":{"name":"multi-path-payments","is_required":false,"is_known":true}},"is_keysend":false,"User_Id":""}],
+    "last_index_offset":"1",
+    "first_index_offset":"1"
+    }
+
+For other API calls  please refer to [LND REST API Reference](https://api.lightning.community/?shell#lnd-rest-api-reference),with the similar User_Id/PORT changes respectively in URI's.
