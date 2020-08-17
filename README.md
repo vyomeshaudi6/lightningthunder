@@ -129,8 +129,8 @@ Once the cipherseed is obtained and verified by the user, the InitWallet method 
 
 Replace `User_Id` with correct value.
 
-    ~/gocode/dev$  MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 /home/ubuntu/gocode/dev/test_data_PrvW/graph/testnet/User_Id/admin.macaroon)"
-    ~/gocode/dev$  curl -X GET --insecure --cacert ~/.lnd/tls.cert --header "$MACAROON_HEADER" https://127.0.0.1:10003/v1/genseed/User_Id
+    
+    ~/gocode/dev$  curl -X GET --insecure --cacert ~/.lnd/tls.cert  https://127.0.0.1:10003/v1/genseed/User_Id
 
 Output:
 
@@ -144,8 +144,8 @@ This can be used along with the GenSeed RPC to obtain a seed, then present it to
 
 Replace `User_Id , wallet_password, cipher_seed_mnemonic` with correct value.
 
-    ~/gocode/dev$  MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 /home/ubuntu/gocode/dev/test_data_PrvW/graph/testnet/User_Id/admin.macaroon)"
-    ~/gocode/dev$  curl -X POST -d '{"wallet_password":"NzE3NzY1NzI3NDc5NzU2OTBhCg==","cipher_seed_mnemonic":["abandon","clean","mammal","rebel","again","call","outside","crawl","embrace","buddy","boy","plastic","core","fruit","chicken","warm","village","like","prevent","pudding","laptop","woman","height","little"]}' --insecure --cacert ~/.lnd/tls.cert --header "$MACAROON_HEADER" https://127.0.0.1:10003/v1/initwallet/User_Id
+    
+    ~/gocode/dev$  curl -X POST -d '{"wallet_password":"NzE3NzY1NzI3NDc5NzU2OTBhCg==","cipher_seed_mnemonic":["abandon","clean","mammal","rebel","again","call","outside","crawl","embrace","buddy","boy","plastic","core","fruit","chicken","warm","village","like","prevent","pudding","laptop","woman","height","little"]}' --insecure --cacert ~/.lnd/tls.cert  https://127.0.0.1:10003/v1/initwallet/User_Id
 
 Output:
 
