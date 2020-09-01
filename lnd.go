@@ -101,6 +101,16 @@ func AdminAuthOptions(cfg *Config) ([]grpc.DialOption, error) {
 
 	// Get the admin macaroon if macaroons are active.
 	if !cfg.NoMacaroons {
+	//--code edit  giving custom macaroon path according to the user id for storing macaroon files of each respective node into their current directory
+		cfg.AdminMacPath = filepath.Join(
+			graphDir, DefaultAdminMacFilename,
+		)
+		cfg.ReadMacPath = filepath.Join(
+			graphDir, DefaultReadMacFilename,
+		)
+		cfg.InvoiceMacPath = filepath.Join(
+			graphDir, DefaultInvoiceMacFilename,
+		)
 		// Load the adming macaroon file.
 		macBytes, err := ioutil.ReadFile(cfg.AdminMacPath)
 		if err != nil {
@@ -452,6 +462,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 	// for wallet encryption.
 	// for loop edit
 	for i := 0; i < 100; i++ {
+
 		// If the user didn't request a seed, then we'll manually assume a
 		// wallet birthday of now, as otherwise the seed would've specified
 		// this information.
@@ -513,7 +524,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 		if !cfg.NoMacaroons {
 			// Create the macaroon authentication/authorization service.
 			macaroonService, err = macaroons.NewService(
-				graphDir , macaroons.IPLockChecker,
+				graphDir, macaroons.IPLockChecker,
 			)
 			if err != nil {
 				err := fmt.Errorf("unable to set up macaroon "+
@@ -754,7 +765,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 			return getListeners("lightningaction")
 		}
 		// restproxy des modified linked 2nd rpc port and 1nd rest port for lightning service
-		restProxyDest = cfg.RPCListeners[1].String()
+		restProxyDest = cfg.RPCListeners[i+1].String()
 		switch {
 		case strings.Contains(restProxyDest, "0.0.0.0"):
 			restProxyDest = strings.Replace(
@@ -1102,13 +1113,13 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	// also encrypted with the wallet's password. These files will be
 	// deleted within it and recreated when successfully changing the
 	// wallet's password.
-	/*macaroonFiles := []string{
+	macaroonFiles := []string{
 		filepath.Join(graphDir, macaroons.DBFilename),
 		cfg.AdminMacPath, cfg.ReadMacPath, cfg.InvoiceMacPath,
 	}
-	*/
+	
 	// so passing an empty string we can delete it later or remove the field from struct
-	macaroonFiles := []string{}
+	//macaroonFiles := []string{}
 	pwService := walletunlocker.New(
 		chainConfig.ChainDir, activeNetParams.Params, !cfg.SyncFreelist,
 		macaroonFiles,
@@ -1217,7 +1228,20 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 			defaultGraphSubDirname,
 			normalizeNetwork(activeNetParams.Name), initMsg.UniqueId)
 		netDir := graphDir
-		
+		//--code edit  giving custom macaroon path according to the user id for storing macaroon files of each respective node into their current directory
+		cfg.AdminMacPath = filepath.Join(
+			graphDir, DefaultAdminMacFilename,
+		)
+		cfg.ReadMacPath = filepath.Join(
+			graphDir, DefaultReadMacFilename,
+		)
+		cfg.InvoiceMacPath = filepath.Join(
+			graphDir, DefaultInvoiceMacFilename,
+		)
+		//--code edit  giving custom channelbackup  path according to the user id for storing backup files of each respective node into their current directory
+		cfg.BackupFilePath = filepath.Join(
+			graphDir, DefaultBackupFileName,
+		)
 		//code modify by -----end--------
 		loader := wallet.NewLoader(
 			activeNetParams.Params, netDir, !cfg.SyncFreelist,
@@ -1299,6 +1323,20 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 			ltndLog.Error(err)
 			return nil, err
 		}
+//--code edit  giving custom macaroon path according to the user id for storing macaroon files of each respective node into their current directory
+		cfg.AdminMacPath = filepath.Join(
+			graphDir, DefaultAdminMacFilename,
+		)
+		cfg.ReadMacPath = filepath.Join(
+			graphDir, DefaultReadMacFilename,
+		)
+		cfg.InvoiceMacPath = filepath.Join(
+			graphDir, DefaultInvoiceMacFilename,
+		)
+		//--code edit  giving custom channelbackup  path according to the user id for storing backup files of each respective node into their current directory
+		cfg.BackupFilePath = filepath.Join(
+			graphDir, DefaultBackupFileName,
+		)
 		ltndLog.Infof("lnd.go before opening channeldb.open")
 		// Open the channeldb, which is dedicated to storing channel, and
 		// network related metadata.

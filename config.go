@@ -931,7 +931,7 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, error) {
 		cfg.registeredChains.PrimaryChain().String(),
 		normalizeNetwork(activeNetParams.Name),
 	)
-
+/*
 	// If a custom macaroon directory wasn't specified and the data
 	// directory has changed from the default path, then we'll also update
 	// the path for the macaroons to be generated.
@@ -950,7 +950,7 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, error) {
 			cfg.networkDir, DefaultInvoiceMacFilename,
 		)
 	}
-
+*/
 	// Similarly, if a custom back up file path wasn't specified, then
 	// we'll update the file location to match our set network directory.
 	if cfg.BackupFilePath == "" {

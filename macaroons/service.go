@@ -27,8 +27,9 @@ var (
 // macaroon against the bakery and gRPC middleware for macaroon-based auth.
 type Service struct {
 	bakery.Bakery
-
+	
 	rks *RootKeyStorage
+	
 }
 
 // NewService returns a service backed by the macaroon Bolt DB stored in the
@@ -39,6 +40,7 @@ type Service struct {
 // such as those for `allow`, `time-before`, `declared`, and `error` caveats
 // are registered automatically and don't need to be added.
 func NewService(dir string, checks ...Checker) (*Service, error) {
+	
 	// Ensure that the path to the directory exists.
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err := os.MkdirAll(dir, 0700); err != nil {
@@ -74,9 +76,11 @@ func NewService(dir string, checks ...Checker) (*Service, error) {
 	// Register all custom caveat checkers with the bakery's checker.
 	// TODO(aakselrod): Add more checks as required.
 	checker := svc.Checker.FirstPartyCaveatChecker.(*checkers.Checker)
+	
 	for _, check := range checks {
 		cond, fun := check()
 		if !isRegistered(checker, cond) {
+			
 			checker.Register(cond, "std", fun)
 		}
 	}
@@ -115,7 +119,7 @@ func (svc *Service) UnaryServerInterceptor(
 			return nil, fmt.Errorf("%s: unknown permissions "+
 				"required for method", info.FullMethod)
 		}
-
+		
 		err := svc.ValidateMacaroon(ctx, permissionMap[info.FullMethod])
 		if err != nil {
 			return nil, err
