@@ -469,7 +469,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 		walletInitParams.Birthday = time.Now()
 		// code modified to get rest proxy set accoring to rpc port i.e linking rpc port and rest proxy port together
 		// restproxy des modified linkednd 1st rpc port and 1st rest port for wallet unlocker service
-		restProxyDest := cfg.RPCListeners[0].String()
+		restProxyDest := cfg.RPCListeners[0].String()//rest port for unlock/create
 		switch {
 		case strings.Contains(restProxyDest, "0.0.0.0"):
 			restProxyDest = strings.Replace(
@@ -720,7 +720,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 		server, err := newServer(
 			cfg, cfg.Listeners, ChanDB, towerClientDB, activeChainControl,
 			&idKeyDesc, walletInitParams.ChansToRestore, chainedAcceptor,
-			torController, UserId,
+			torController, UserId,i,
 		)
 		if err != nil {
 			err := fmt.Errorf("unable to create server: %v", err)

@@ -334,7 +334,7 @@ func newServer(cfg *Config, listenAddrs []net.Addr, chanDB *channeldb.DB,
 	nodeKeyDesc *keychain.KeyDescriptor,
 	chansToRestore walletunlocker.ChannelsToRecover,
 	chanPredicate chanacceptor.ChannelAcceptor,
-	torController *tor.Controller, UserId string) (*server, error) {
+	torController *tor.Controller, UserId string,userIndex int,) (*server, error) {
 
 	var (
 		err           error
@@ -345,19 +345,17 @@ func newServer(cfg *Config, listenAddrs []net.Addr, chanDB *channeldb.DB,
 	)
 
 	listeners := make([]net.Listener, 1)
-	for _, listenAddr := range listenAddrs {
 		// Note: though brontide.NewListener uses ResolveTCPAddr, it
 		// doesn't need to call the general lndResolveTCP function
 		// since we are resolving a local address.
 		listeners[0], err = brontide.NewListener(
-			nodeKeyECDH, listenAddr.String(),
+			nodeKeyECDH, listenAddrs[userIndex].String(),
 		)
 		if err != nil {
-			//return nil, err
-			continue
+			return nil, err
 		}
-		break
-	}
+		
+	
 
 	var serializedPubKey [33]byte
 	copy(serializedPubKey[:], nodeKeyECDH.PubKey().SerializeCompressed())
@@ -557,10 +555,9 @@ func newServer(cfg *Config, listenAddrs []net.Addr, chanDB *channeldb.DB,
 
 	// If we were requested to automatically configure port forwarding,
 	// we'll use the ports that the server will be listening on.
-	externalIPStrings := make([]string, len(cfg.ExternalIPs))
-	for idx, ip := range cfg.ExternalIPs {
-		externalIPStrings[idx] = ip.String()
-	}
+	externalIPStrings := make([]string, 1)
+	externalIPStrings[0] = cfg.ExternalIPs[userIndex].String()
+	
 	if s.natTraversal != nil {
 		listenPorts := make([]uint16, 0, len(listenAddrs))
 		for _, listenAddr := range listenAddrs {
