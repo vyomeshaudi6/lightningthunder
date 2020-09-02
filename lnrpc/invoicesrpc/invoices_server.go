@@ -192,14 +192,7 @@ func (s *Server) RegisterWithRestServer(ctx context.Context,
 // for notifying the client of state changes for a specified invoice.
 func (s *Server) SubscribeSingleInvoice(req *SubscribeSingleInvoiceRequest,
 	updateStream Invoices_SubscribeSingleInvoiceServer) error {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
-			break
-		}
-	}
+	
 
 	hash, err := lntypes.MakeHash(req.RHash)
 	if err != nil {
@@ -236,14 +229,7 @@ func (s *Server) SubscribeSingleInvoice(req *SubscribeSingleInvoiceRequest,
 // this call will succeed.
 func (s *Server) SettleInvoice(ctx context.Context,
 	in *SettleInvoiceMsg) (*SettleInvoiceResp, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
-			break
-		}
-	}
+	
 
 	preimage, err := lntypes.MakePreimage(in.Preimage)
 	if err != nil {
@@ -263,14 +249,7 @@ func (s *Server) SettleInvoice(ctx context.Context,
 // fail.
 func (s *Server) CancelInvoice(ctx context.Context,
 	in *CancelInvoiceMsg) (*CancelInvoiceResp, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
-			break
-		}
-	}
+	
 
 	paymentHash, err := lntypes.MakeHash(in.PaymentHash)
 	if err != nil {
@@ -292,15 +271,7 @@ func (s *Server) CancelInvoice(ctx context.Context,
 // unique payment hash.
 func (s *Server) AddHoldInvoice(ctx context.Context,
 	invoice *AddHoldInvoiceRequest) (*AddHoldInvoiceResp, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
-			break
-		}
-	}
-
+	
 	addInvoiceCfg := &AddInvoiceConfig{
 		AddInvoice:         s.cfg.InvoiceRegistry.AddInvoice,
 		IsChannelActive:    s.cfg.IsChannelActive,

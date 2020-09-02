@@ -121,14 +121,7 @@ func (c *Handler) RegisterWithRestServer(ctx context.Context,
 // backups.
 func (c *Handler) GetInfo(ctx context.Context,
 	req *GetInfoRequest) (*GetInfoResponse, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-			c = Subserverpointers[i]
-			break
-		}
-	}
+	
 	if err := c.isActive(); err != nil {
 		return nil, err
 	}

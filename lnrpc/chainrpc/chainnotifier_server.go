@@ -224,14 +224,7 @@ func (s *Server) RegisterWithRestServer(ctx context.Context,
 // NOTE: This is part of the chainrpc.ChainNotifierService interface.
 func (s *Server) RegisterConfirmationsNtfn(in *ConfRequest,
 	confStream ChainNotifier_RegisterConfirmationsNtfnServer) error {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if in.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
-			break
-		}
-	}
+	
 	if !s.cfg.ChainNotifier.Started() {
 		return ErrChainNotifierServerNotActive
 	}
@@ -331,14 +324,7 @@ func (s *Server) RegisterConfirmationsNtfn(in *ConfRequest,
 // NOTE: This is part of the chainrpc.ChainNotifierService interface.
 func (s *Server) RegisterSpendNtfn(in *SpendRequest,
 	spendStream ChainNotifier_RegisterSpendNtfnServer) error {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if in.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
-			break
-		}
-	}
+	
 	if !s.cfg.ChainNotifier.Started() {
 		return ErrChainNotifierServerNotActive
 	}
@@ -449,14 +435,7 @@ func (s *Server) RegisterSpendNtfn(in *SpendRequest,
 // NOTE: This is part of the chainrpc.ChainNotifierService interface.
 func (s *Server) RegisterBlockEpochNtfn(in *BlockEpoch,
 	epochStream ChainNotifier_RegisterBlockEpochNtfnServer) error {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if in.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
-			break
-		}
-	}
+	
 	if !s.cfg.ChainNotifier.Started() {
 		return ErrChainNotifierServerNotActive
 	}

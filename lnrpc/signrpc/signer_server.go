@@ -207,14 +207,7 @@ func (s *Server) RegisterWithRestServer(ctx context.Context,
 //
 // NOTE: The resulting signature should be void of a sighash byte.
 func (s *Server) SignOutputRaw(ctx context.Context, in *SignReq) (*SignResp, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if in.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
-			break
-		}
-	}
+	
 	switch {
 	// If the client doesn't specify a transaction, then there's nothing to
 	// sign, so we'll exit early.
@@ -369,14 +362,7 @@ func (s *Server) SignOutputRaw(ctx context.Context, in *SignReq) (*SignResp, err
 // the TxOut field, the value in that same field, and finally the input index.
 func (s *Server) ComputeInputScript(ctx context.Context,
 	in *SignReq) (*InputScriptResp, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if in.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
-			break
-		}
-	}
+	
 	switch {
 	// If the client doesn't specify a transaction, then there's nothing to
 	// sign, so we'll exit early.
@@ -446,14 +432,7 @@ func (s *Server) ComputeInputScript(ctx context.Context,
 // returned signature is fixed-size LN wire format encoded.
 func (s *Server) SignMessage(ctx context.Context,
 	in *SignMessageReq) (*SignMessageResp, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if in.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
-			break
-		}
-	}
+	
 	if in.Msg == nil {
 		return nil, fmt.Errorf("a message to sign MUST be passed in")
 	}
@@ -492,14 +471,7 @@ func (s *Server) SignMessage(ctx context.Context,
 // provided. The signature must be fixed-size LN wire format encoded.
 func (s *Server) VerifyMessage(ctx context.Context,
 	in *VerifyMessageReq) (*VerifyMessageResp, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if in.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
-			break
-		}
-	}
+	
 	if in.Msg == nil {
 		return nil, fmt.Errorf("a message to verify MUST be passed in")
 	}
@@ -543,14 +515,7 @@ func (s *Server) VerifyMessage(ctx context.Context,
 // hashed with sha256, resulting in the final key length of 256bit.
 func (s *Server) DeriveSharedKey(_ context.Context, in *SharedKeyRequest) (
 	*SharedKeyResponse, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if in.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
-			break
-		}
-	}
+	
 	if len(in.EphemeralPubkey) != 33 {
 		return nil, fmt.Errorf("ephemeral pubkey must be " +
 			"serialized in compressed format")

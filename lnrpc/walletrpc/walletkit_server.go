@@ -252,15 +252,7 @@ func (w *WalletKit) RegisterWithRestServer(ctx context.Context,
 // meaning unconfirmed.
 func (w *WalletKit) ListUnspent(ctx context.Context,
 	req *ListUnspentRequest) (*ListUnspentResponse, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-
-			w = Subserverpointers[i]
-			break
-		}
-	}
+	
 	// Validate the confirmation arguments.
 	minConfs, maxConfs, err := lnrpc.ParseConfs(req.MinConfs, req.MaxConfs)
 	if err != nil {
@@ -303,15 +295,7 @@ func (w *WalletKit) ListUnspent(ctx context.Context,
 // wtxmgr.ErrOutputAlreadyLocked is returned.
 func (w *WalletKit) LeaseOutput(ctx context.Context,
 	req *LeaseOutputRequest) (*LeaseOutputResponse, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-
-			w = Subserverpointers[i]
-			break
-		}
-	}
+	
 	if len(req.Id) != 32 {
 		return nil, errors.New("id must be 32 random bytes")
 	}
@@ -349,15 +333,7 @@ func (w *WalletKit) LeaseOutput(ctx context.Context,
 // originally lock the output.
 func (w *WalletKit) ReleaseOutput(ctx context.Context,
 	req *ReleaseOutputRequest) (*ReleaseOutputResponse, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-
-			w = Subserverpointers[i]
-			break
-		}
-	}
+	
 	if len(req.Id) != 32 {
 		return nil, errors.New("id must be 32 random bytes")
 	}
@@ -386,15 +362,7 @@ func (w *WalletKit) ReleaseOutput(ctx context.Context,
 // child within this branch.
 func (w *WalletKit) DeriveNextKey(ctx context.Context,
 	req *KeyReq) (*signrpc.KeyDescriptor, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-
-			w = Subserverpointers[i]
-			break
-		}
-	}
+	
 	nextKeyDesc, err := w.cfg.KeyRing.DeriveNextKey(
 		keychain.KeyFamily(req.KeyFamily),
 	)
@@ -415,15 +383,7 @@ func (w *WalletKit) DeriveNextKey(ctx context.Context,
 // KeyLocator.
 func (w *WalletKit) DeriveKey(ctx context.Context,
 	req *signrpc.KeyLocator) (*signrpc.KeyDescriptor, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-
-			w = Subserverpointers[i]
-			break
-		}
-	}
+	
 	keyDesc, err := w.cfg.KeyRing.DeriveKey(keychain.KeyLocator{
 		Family: keychain.KeyFamily(req.KeyFamily),
 		Index:  uint32(req.KeyIndex),
@@ -444,15 +404,7 @@ func (w *WalletKit) DeriveKey(ctx context.Context,
 // NextAddr returns the next unused address within the wallet.
 func (w *WalletKit) NextAddr(ctx context.Context,
 	req *AddrRequest) (*AddrResponse, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-
-			w = Subserverpointers[i]
-			break
-		}
-	}
+	
 	addr, err := w.cfg.Wallet.NewAddress(lnwallet.WitnessPubKey, false)
 	if err != nil {
 		return nil, err
@@ -468,15 +420,7 @@ func (w *WalletKit) NextAddr(ctx context.Context,
 // transaction on start up, until it enters the chain.
 func (w *WalletKit) PublishTransaction(ctx context.Context,
 	req *Transaction) (*PublishResponse, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-
-			w = Subserverpointers[i]
-			break
-		}
-	}
+	
 	switch {
 	// If the client doesn't specify a transaction, then there's nothing to
 	// publish.
@@ -509,15 +453,7 @@ func (w *WalletKit) PublishTransaction(ctx context.Context,
 // This is ideal when wanting to batch create a set of transactions.
 func (w *WalletKit) SendOutputs(ctx context.Context,
 	req *SendOutputsRequest) (*SendOutputsResponse, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-
-			w = Subserverpointers[i]
-			break
-		}
-	}
+	
 	switch {
 	// If the client didn't specify any outputs to create, then  we can't
 	// proceed .
@@ -566,15 +502,7 @@ func (w *WalletKit) SendOutputs(ctx context.Context,
 // the confirmation target.
 func (w *WalletKit) EstimateFee(ctx context.Context,
 	req *EstimateFeeRequest) (*EstimateFeeResponse, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-
-			w = Subserverpointers[i]
-			break
-		}
-	}
+	
 	switch {
 	// A confirmation target of zero doesn't make any sense. Similarly, we
 	// reject confirmation targets of 1 as they're unreasonable.
@@ -602,15 +530,7 @@ func (w *WalletKit) EstimateFee(ctx context.Context,
 // taking the average fee rate of all the outputs it's trying to sweep.
 func (w *WalletKit) PendingSweeps(ctx context.Context,
 	in *PendingSweepsRequest) (*PendingSweepsResponse, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if in.User_Id == Subserverpointers[i].User_Id {
-
-			w = Subserverpointers[i]
-			break
-		}
-	}
+	
 	// Retrieve all of the outputs the UtxoSweeper is currently trying to
 	// sweep.
 	pendingInputs, err := w.cfg.Sweeper.PendingInputs()
@@ -726,15 +646,7 @@ func unmarshallOutPoint(op *lnrpc.OutPoint) (*wire.OutPoint, error) {
 // sweep can be checked through the PendingSweeps RPC.
 func (w *WalletKit) BumpFee(ctx context.Context,
 	in *BumpFeeRequest) (*BumpFeeResponse, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if in.User_Id == Subserverpointers[i].User_Id {
-
-			w = Subserverpointers[i]
-			break
-		}
-	}
+	
 	// Parse the outpoint from the request.
 	op, err := unmarshallOutPoint(in.Outpoint)
 	if err != nil {
@@ -826,15 +738,7 @@ func (w *WalletKit) BumpFee(ctx context.Context,
 // ListSweeps returns a list of the sweeps that our node has published.
 func (w *WalletKit) ListSweeps(ctx context.Context,
 	in *ListSweepsRequest) (*ListSweepsResponse, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if in.User_Id == Subserverpointers[i].User_Id {
-
-			w = Subserverpointers[i]
-			break
-		}
-	}
+	
 	sweeps, err := w.cfg.Sweeper.ListSweeps()
 	if err != nil {
 		return nil, err
@@ -898,15 +802,7 @@ func (w *WalletKit) ListSweeps(ctx context.Context,
 // LabelTransaction adds a label to a transaction.
 func (w *WalletKit) LabelTransaction(ctx context.Context,
 	req *LabelTransactionRequest) (*LabelTransactionResponse, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if in.User_Id == Subserverpointers[i].User_Id {
-
-			w = Subserverpointers[i]
-			break
-		}
-	}
+	
 	// Check that the label provided in non-zero.
 	if len(req.Label) == 0 {
 		return nil, ErrZeroLabel

@@ -156,14 +156,7 @@ func (c *WatchtowerClient) isActive() error {
 // backups.
 func (c *WatchtowerClient) AddTower(ctx context.Context,
 	req *AddTowerRequest) (*AddTowerResponse, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-			c = Subserverpointers[i]
-			break
-		}
-	}
+	
 	if err := c.isActive(); err != nil {
 		return nil, err
 	}
@@ -197,14 +190,7 @@ func (c *WatchtowerClient) AddTower(ctx context.Context,
 // removing the address from the watchtower instead.
 func (c *WatchtowerClient) RemoveTower(ctx context.Context,
 	req *RemoveTowerRequest) (*RemoveTowerResponse, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-			c = Subserverpointers[i]
-			break
-		}
-	}
+	
 	if err := c.isActive(); err != nil {
 		return nil, err
 	}
@@ -236,14 +222,7 @@ func (c *WatchtowerClient) RemoveTower(ctx context.Context,
 // ListTowers returns the list of watchtowers registered with the client.
 func (c *WatchtowerClient) ListTowers(ctx context.Context,
 	req *ListTowersRequest) (*ListTowersResponse, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-			c = Subserverpointers[i]
-			break
-		}
-	}
+	
 	if err := c.isActive(); err != nil {
 		return nil, err
 	}
@@ -265,14 +244,7 @@ func (c *WatchtowerClient) ListTowers(ctx context.Context,
 // GetTowerInfo retrieves information for a registered watchtower.
 func (c *WatchtowerClient) GetTowerInfo(ctx context.Context,
 	req *GetTowerInfoRequest) (*Tower, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-			c = Subserverpointers[i]
-			break
-		}
-	}
+	
 	if err := c.isActive(); err != nil {
 		return nil, err
 	}
@@ -293,14 +265,7 @@ func (c *WatchtowerClient) GetTowerInfo(ctx context.Context,
 // Stats returns the in-memory statistics of the client since startup.
 func (c *WatchtowerClient) Stats(ctx context.Context,
 	req *StatsRequest) (*StatsResponse, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-			c = Subserverpointers[i]
-			break
-		}
-	}
+	
 	if err := c.isActive(); err != nil {
 		return nil, err
 	}
@@ -318,14 +283,7 @@ func (c *WatchtowerClient) Stats(ctx context.Context,
 // Policy returns the active watchtower client policy configuration.
 func (c *WatchtowerClient) Policy(ctx context.Context,
 	req *PolicyRequest) (*PolicyResponse, error) {
-	//vyomesh code edit
-	// for finding which sub server instance with userid hit the command
-	for i := 0; i < len(Subserverpointers); i++ {
-		if req.User_Id == Subserverpointers[i].User_Id {
-			c = Subserverpointers[i]
-			break
-		}
-	}
+	
 	if err := c.isActive(); err != nil {
 		return nil, err
 	}
