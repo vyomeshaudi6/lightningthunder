@@ -15,7 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/v2/watchtower/server/{User_Id}": {
+    "/v2/watchtower/server": {
       "get": {
         "summary": "lncli: tower info\nGetInfo returns general information concerning the companion watchtower\nincluding its public key and URIs where the server is currently\nlistening for clients.",
         "operationId": "GetInfo",
@@ -30,8 +30,8 @@
         "parameters": [
           {
             "name": "User_Id",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],

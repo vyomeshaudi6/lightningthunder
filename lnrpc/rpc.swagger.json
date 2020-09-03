@@ -15,7 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/v1/balance/blockchain/{User_Id}": {
+    "/v1/balance/blockchain": {
       "get": {
         "summary": "lncli: `walletbalance`\nWalletBalance returns total unspent outputs(confirmed and unconfirmed), all\nconfirmed unspent outputs and all unconfirmed unspent outputs under control\nof the wallet.",
         "operationId": "WalletBalance",
@@ -30,8 +30,8 @@
         "parameters": [
           {
             "name": "User_Id",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -40,7 +40,7 @@
         ]
       }
     },
-    "/v1/balance/channels/{User_Id}": {
+    "/v1/balance/channels": {
       "get": {
         "summary": "lncli: `channelbalance`\nChannelBalance returns the total funds available across all open channels\nin satoshis.",
         "operationId": "ChannelBalance",
@@ -55,9 +55,95 @@
         "parameters": [
           {
             "name": "User_Id",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/v1/channels": {
+      "get": {
+        "summary": "lncli: `listchannels`\nListChannels returns a description of all the open channels that this node\nis a participant in.",
+        "operationId": "ListChannels",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcListChannelsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "active_only",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "inactive_only",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "public_only",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "private_only",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "peer",
+            "description": "Filters the response for channels with a target peer's pubkey. If peer is\nempty, all channels will be returned.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "byte"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      },
+      "post": {
+        "summary": "OpenChannelSync is a synchronous version of the OpenChannel RPC call. This\ncall is meant to be consumed by clients to the REST proxy. As with all\nother sync calls, all byte slices are intended to be populated as hex\nencoded strings.",
+        "operationId": "OpenChannelSync",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcChannelPoint"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/lnrpcOpenChannelRequest"
+            }
           }
         ],
         "tags": [
@@ -113,7 +199,32 @@
         ]
       }
     },
-    "/v1/channels/backup/restore/{User_Id}": {
+    "/v1/channels/backup": {
+      "get": {
+        "summary": "ExportAllChannelBackups returns static channel backups for all existing\nchannels known to lnd. A set of regular singular static channel backups for\neach channel are returned. Additionally, a multi-channel backup is returned\nas well, which contains a single encrypted blob containing the backups of\neach channel.",
+        "operationId": "ExportAllChannelBackups",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcChanBackupSnapshot"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/v1/channels/backup/restore": {
       "post": {
         "summary": "lncli: `restorechanbackup`\nRestoreChannelBackups accepts a set of singular channel backups, or a\nsingle encrypted multi-chan backup and attempts to recover any funds\nremaining within the channel. If we are able to unpack the backup, then the\nnew channel will be shown under listchannels, as well as pending channels.",
         "operationId": "RestoreChannelBackups",
@@ -126,12 +237,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "body",
             "in": "body",
@@ -163,7 +268,7 @@
         ]
       }
     },
-    "/v1/channels/backup/verify/{User_Id}": {
+    "/v1/channels/backup/verify": {
       "post": {
         "summary": "VerifyChanBackup allows a caller to verify the integrity of a channel backup\nsnapshot. This method will accept either a packed Single or a packed Multi.\nSpecifying both will result in an error.",
         "operationId": "VerifyChanBackup",
@@ -176,12 +281,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "body",
             "in": "body",
@@ -196,32 +295,7 @@
         ]
       }
     },
-    "/v1/channels/backup/{User_Id}": {
-      "get": {
-        "summary": "ExportAllChannelBackups returns static channel backups for all existing\nchannels known to lnd. A set of regular singular static channel backups for\neach channel are returned. Additionally, a multi-channel backup is returned\nas well, which contains a single encrypted blob containing the backups of\neach channel.",
-        "operationId": "ExportAllChannelBackups",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/lnrpcChanBackupSnapshot"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Lightning"
-        ]
-      }
-    },
-    "/v1/channels/backup/{chan_point.funding_txid_str}/{chan_point.output_index}/{User_Id}": {
+    "/v1/channels/backup/{chan_point.funding_txid_str}/{chan_point.output_index}": {
       "get": {
         "summary": "lncli: `exportchanbackup`\nExportChannelBackup attempts to return an encrypted static channel backup\nfor the target channel identified by it channel point. The backup is\nencrypted with a key generated from the aezeed seed of the user. The\nreturned backup can either be restored using the RestoreChannelBackup\nmethod once lnd is running, or via the InitWallet and UnlockWallet methods\nfrom the WalletUnlocker service.",
         "operationId": "ExportChannelBackup",
@@ -250,18 +324,18 @@
             "format": "int64"
           },
           {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "chan_point.funding_txid_bytes",
             "description": "Txid of the funding transaction. When using REST, this field must be\nencoded as base64.",
             "in": "query",
             "required": false,
             "type": "string",
             "format": "byte"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -269,7 +343,7 @@
         ]
       }
     },
-    "/v1/channels/closed/{User_Id}": {
+    "/v1/channels/closed": {
       "get": {
         "summary": "lncli: `closedchannels`\nClosedChannels returns a description of all the closed channels that\nthis node was a participant in.",
         "operationId": "ClosedChannels",
@@ -282,12 +356,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "cooperative",
             "in": "query",
@@ -329,6 +397,12 @@
             "required": false,
             "type": "boolean",
             "format": "boolean"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -336,7 +410,7 @@
         ]
       }
     },
-    "/v1/channels/pending/{User_Id}": {
+    "/v1/channels/pending": {
       "get": {
         "summary": "lncli: `pendingchannels`\nPendingChannels returns a list of all the channels that are currently\nconsidered \"pending\". A channel is pending if it has finished the funding\nworkflow and is waiting for confirmations for the funding txn, or is in the\nprocess of closure, either initiated cooperatively or non-cooperatively.",
         "operationId": "PendingChannels",
@@ -351,8 +425,8 @@
         "parameters": [
           {
             "name": "User_Id",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -361,7 +435,7 @@
         ]
       }
     },
-    "/v1/channels/stream/{User_Id}": {
+    "/v1/channels/stream": {
       "post": {
         "summary": "lncli: `openchannel`\nOpenChannel attempts to open a singly funded channel specified in the\nrequest to a remote peer. Users are able to specify a target number of\nblocks that the funding transaction should be confirmed in, or a manual fee\nrate to us for the funding transaction. If neither are specified, then a\nlax block confirmation target is used. Each OpenStatusUpdate will return\nthe pending channel ID of the in-progress channel. Depending on the\narguments specified in the OpenChannelRequest, this pending channel ID can\nthen be used to manually progress the channel funding flow.",
         "operationId": "OpenChannel",
@@ -374,12 +448,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "body",
             "in": "body",
@@ -411,40 +479,7 @@
         ]
       }
     },
-    "/v1/channels/transactions/route/{User_Id}": {
-      "post": {
-        "summary": "SendToRouteSync is a synchronous version of SendToRoute. It Will block\nuntil the payment either fails or succeeds.",
-        "operationId": "SendToRouteSync",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/lnrpcSendResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/lnrpcSendToRouteRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Lightning"
-        ]
-      }
-    },
-    "/v1/channels/transactions/{User_Id}": {
+    "/v1/channels/transactions": {
       "post": {
         "summary": "SendPaymentSync is the synchronous non-streaming version of SendPayment.\nThis RPC is intended to be consumed by clients of the REST proxy.\nAdditionally, this RPC expects the destination's public key and the payment\nhash (if any) to be encoded as hex strings.",
         "operationId": "SendPaymentSync",
@@ -457,12 +492,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "body",
             "in": "body",
@@ -477,90 +506,25 @@
         ]
       }
     },
-    "/v1/channels/{User_Id}": {
-      "get": {
-        "summary": "lncli: `listchannels`\nListChannels returns a description of all the open channels that this node\nis a participant in.",
-        "operationId": "ListChannels",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/lnrpcListChannelsResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "active_only",
-            "in": "query",
-            "required": false,
-            "type": "boolean",
-            "format": "boolean"
-          },
-          {
-            "name": "inactive_only",
-            "in": "query",
-            "required": false,
-            "type": "boolean",
-            "format": "boolean"
-          },
-          {
-            "name": "public_only",
-            "in": "query",
-            "required": false,
-            "type": "boolean",
-            "format": "boolean"
-          },
-          {
-            "name": "private_only",
-            "in": "query",
-            "required": false,
-            "type": "boolean",
-            "format": "boolean"
-          },
-          {
-            "name": "peer",
-            "description": "Filters the response for channels with a target peer's pubkey. If peer is\nempty, all channels will be returned.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "byte"
-          }
-        ],
-        "tags": [
-          "Lightning"
-        ]
-      },
+    "/v1/channels/transactions/route": {
       "post": {
-        "summary": "OpenChannelSync is a synchronous version of the OpenChannel RPC call. This\ncall is meant to be consumed by clients to the REST proxy. As with all\nother sync calls, all byte slices are intended to be populated as hex\nencoded strings.",
-        "operationId": "OpenChannelSync",
+        "summary": "SendToRouteSync is a synchronous version of SendToRoute. It Will block\nuntil the payment either fails or succeeds.",
+        "operationId": "SendToRouteSync",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/lnrpcChannelPoint"
+              "$ref": "#/definitions/lnrpcSendResponse"
             }
           }
         },
         "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/lnrpcOpenChannelRequest"
+              "$ref": "#/definitions/lnrpcSendToRouteRequest"
             }
           }
         ],
@@ -648,7 +612,7 @@
         ]
       }
     },
-    "/v1/chanpolicy/{User_Id}": {
+    "/v1/chanpolicy": {
       "post": {
         "summary": "lncli: `updatechanpolicy`\nUpdateChannelPolicy allows the caller to update the fee schedule and\nchannel policies for all channels globally, or a particular channel.",
         "operationId": "UpdateChannelPolicy",
@@ -661,12 +625,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "body",
             "in": "body",
@@ -681,7 +639,7 @@
         ]
       }
     },
-    "/v1/debuglevel/{User_Id}": {
+    "/v1/debuglevel": {
       "post": {
         "summary": "lncli: `debuglevel`\nDebugLevel allows a caller to programmatically set the logging verbosity of\nlnd. The logging can be targeted according to a coarse daemon-wide logging\nlevel, or in a granular fashion to specify the logging for a target\nsub-system.",
         "operationId": "DebugLevel",
@@ -694,12 +652,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "body",
             "in": "body",
@@ -714,7 +666,7 @@
         ]
       }
     },
-    "/v1/fees/{User_Id}": {
+    "/v1/fees": {
       "get": {
         "summary": "lncli: `feereport`\nFeeReport allows the caller to obtain a report detailing the current fee\nschedule enforced by the node globally for each channel.",
         "operationId": "FeeReport",
@@ -729,8 +681,8 @@
         "parameters": [
           {
             "name": "User_Id",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -739,7 +691,7 @@
         ]
       }
     },
-    "/v1/funding/step/{User_Id}": {
+    "/v1/funding/step": {
       "post": {
         "summary": "FundingStateStep is an advanced funding related call that allows the caller\nto either execute some preparatory steps for a funding workflow, or\nmanually progress a funding workflow. The primary way a funding flow is\nidentified is via its pending channel ID. As an example, this method can be\nused to specify that we're expecting a funding flow for a particular\npending channel ID, for which we need to use specific parameters.\nAlternatively, this can be used to interactively drive PSBT signing for\nfunding for partially complete funding transactions.",
         "operationId": "FundingStateStep",
@@ -752,12 +704,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "body",
             "in": "body",
@@ -772,7 +718,7 @@
         ]
       }
     },
-    "/v1/getinfo/{User_Id}": {
+    "/v1/getinfo": {
       "get": {
         "summary": "lncli: `getinfo`\nGetInfo returns general information concerning the lightning node including\nit's identity pubkey, alias, the chains it is connected to, and information\nconcerning the number of open+pending channels.",
         "operationId": "GetInfo",
@@ -787,8 +733,8 @@
         "parameters": [
           {
             "name": "User_Id",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -797,7 +743,7 @@
         ]
       }
     },
-    "/v1/getrecoveryinfo/{User_Id}": {
+    "/v1/getrecoveryinfo": {
       "get": {
         "summary": "* lncli: `getrecoveryinfo`\nGetRecoveryInfo returns information concerning the recovery mode including\nwhether it's in a recovery mode, whether the recovery is finished, and the\nprogress made so far.",
         "operationId": "GetRecoveryInfo",
@@ -812,8 +758,8 @@
         "parameters": [
           {
             "name": "User_Id",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -822,7 +768,40 @@
         ]
       }
     },
-    "/v1/graph/edge/{chan_id}/{User_Id}": {
+    "/v1/graph": {
+      "get": {
+        "summary": "lncli: `describegraph`\nDescribeGraph returns a description of the latest graph state from the\npoint of view of the node. The graph information is partitioned into two\ncomponents: all the nodes/vertexes, and all the edges that connect the\nvertexes themselves. As this is a directed graph, the edges also contain\nthe node directional specific routing policy which includes: the time lock\ndelta, fee information, etc.",
+        "operationId": "DescribeGraph",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcChannelGraph"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "include_unannounced",
+            "description": "Whether unannounced channels are included in the response or not. If set,\nunannounced channels are included. Unannounced channels are both private\nchannels, and public channels that are not yet announced to the network.",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/v1/graph/edge/{chan_id}": {
       "get": {
         "summary": "lncli: `getchaninfo`\nGetChanInfo returns the latest authenticated network announcement for the\ngiven channel identified by its channel ID: an 8-byte integer which\nuniquely identifies the location of transaction's funding output within the\nblockchain.",
         "operationId": "GetChanInfo",
@@ -845,8 +824,8 @@
           },
           {
             "name": "User_Id",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -855,7 +834,7 @@
         ]
       }
     },
-    "/v1/graph/info/{User_Id}": {
+    "/v1/graph/info": {
       "get": {
         "summary": "lncli: `getnetworkinfo`\nGetNetworkInfo returns some basic stats about the known channel graph from\nthe point of view of the node.",
         "operationId": "GetNetworkInfo",
@@ -870,8 +849,8 @@
         "parameters": [
           {
             "name": "User_Id",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -880,7 +859,7 @@
         ]
       }
     },
-    "/v1/graph/node/{pub_key}/{User_Id}": {
+    "/v1/graph/node/{pub_key}": {
       "get": {
         "summary": "lncli: `getnodeinfo`\nGetNodeInfo returns the latest advertised, aggregated, and authenticated\nchannel information for the specified node identified by its public key.",
         "operationId": "GetNodeInfo",
@@ -901,18 +880,18 @@
             "type": "string"
           },
           {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "include_channels",
             "description": "If true, will include all known channels associated with the node.",
             "in": "query",
             "required": false,
             "type": "boolean",
             "format": "boolean"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -920,7 +899,7 @@
         ]
       }
     },
-    "/v1/graph/nodemetrics/{User_Id}": {
+    "/v1/graph/nodemetrics": {
       "get": {
         "summary": "lncli: `getnodemetrics`\nGetNodeMetrics returns node metrics calculated from the graph. Currently\nthe only supported metric is betweenness centrality of individual nodes.",
         "operationId": "GetNodeMetrics",
@@ -933,12 +912,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "types",
             "description": "The requested node metrics.",
@@ -953,6 +926,12 @@
               ]
             },
             "collectionFormat": "multi"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -960,7 +939,7 @@
         ]
       }
     },
-    "/v1/graph/routes/{pub_key}/{amt}/{User_Id}": {
+    "/v1/graph/routes/{pub_key}/{amt}": {
       "get": {
         "summary": "lncli: `queryroutes`\nQueryRoutes attempts to query the daemon's Channel Router for a possible\nroute to a target destination capable of carrying a specific amount of\nsatoshis. The returned route contains the full details required to craft and\nsend an HTLC, also including the necessary information that should be\npresent within the Sphinx packet encapsulated within the HTLC.",
         "description": "When using REST, the `dest_custom_records` map type can be set by appending\n`\u0026dest_custom_records[\u003crecord_number\u003e]=\u003crecord_data_base64_url_encoded\u003e`\nto the URL. Unfortunately this map type doesn't appear in the REST API\ndocumentation because of a bug in the grpc-gateway library.",
@@ -988,12 +967,6 @@
             "required": true,
             "type": "string",
             "format": "int64"
-          },
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
           },
           {
             "name": "amt_msat",
@@ -1115,6 +1088,12 @@
               ]
             },
             "collectionFormat": "multi"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1139,40 +1118,7 @@
         ]
       }
     },
-    "/v1/graph/{User_Id}": {
-      "get": {
-        "summary": "lncli: `describegraph`\nDescribeGraph returns a description of the latest graph state from the\npoint of view of the node. The graph information is partitioned into two\ncomponents: all the nodes/vertexes, and all the edges that connect the\nvertexes themselves. As this is a directed graph, the edges also contain\nthe node directional specific routing policy which includes: the time lock\ndelta, fee information, etc.",
-        "operationId": "DescribeGraph",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/lnrpcChannelGraph"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "include_unannounced",
-            "description": "Whether unannounced channels are included in the response or not. If set,\nunannounced channels are included. Unannounced channels are both private\nchannels, and public channels that are not yet announced to the network.",
-            "in": "query",
-            "required": false,
-            "type": "boolean",
-            "format": "boolean"
-          }
-        ],
-        "tags": [
-          "Lightning"
-        ]
-      }
-    },
-    "/v1/invoice/{r_hash_str}/{User_Id}": {
+    "/v1/invoice/{r_hash_str}": {
       "get": {
         "summary": "lncli: `lookupinvoice`\nLookupInvoice attempts to look up an invoice according to its payment hash.\nThe passed payment hash *must* be exactly 32 bytes, if not, an error is\nreturned.",
         "operationId": "LookupInvoice",
@@ -1193,59 +1139,18 @@
             "type": "string"
           },
           {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "r_hash",
             "description": "The payment hash of the invoice to be looked up. When using REST, this field\nmust be encoded as base64.",
             "in": "query",
             "required": false,
             "type": "string",
             "format": "byte"
-          }
-        ],
-        "tags": [
-          "Lightning"
-        ]
-      }
-    },
-    "/v1/invoices/subscribe/{User_Id}": {
-      "get": {
-        "summary": "SubscribeInvoices returns a uni-directional stream (server -\u003e client) for\nnotifying the client of newly added/settled invoices. The caller can\noptionally specify the add_index and/or the settle_index. If the add_index\nis specified, then we'll first start by sending add invoice events for all\ninvoices with an add_index greater than the specified value. If the\nsettle_index is specified, the next, we'll send out all settle events for\ninvoices with a settle_index greater than the specified value. One or both\nof these fields can be set. If no fields are set, then we'll only send out\nthe latest add/settle events.",
-        "operationId": "SubscribeInvoices",
-        "responses": {
-          "200": {
-            "description": "A successful response.(streaming responses)",
-            "schema": {
-              "$ref": "#/x-stream-definitions/lnrpcInvoice"
-            }
-          }
-        },
-        "parameters": [
+          },
           {
             "name": "User_Id",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
-          },
-          {
-            "name": "add_index",
-            "description": "If specified (non-zero), then we'll first start by sending out\nnotifications for all added indexes with an add_index greater than this\nvalue. This allows callers to catch up on any events they missed while they\nweren't connected to the streaming RPC.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
-          },
-          {
-            "name": "settle_index",
-            "description": "If specified (non-zero), then we'll first start by sending out\nnotifications for all settled indexes with an settle_index greater than\nthis value. This allows callers to catch up on any events they missed while\nthey weren't connected to the streaming RPC.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
           }
         ],
         "tags": [
@@ -1253,7 +1158,7 @@
         ]
       }
     },
-    "/v1/invoices/{User_Id}": {
+    "/v1/invoices": {
       "get": {
         "summary": "lncli: `listinvoices`\nListInvoices returns a list of all the invoices currently stored within the\ndatabase. Any active debug invoices are ignored. It has full support for\npaginated responses, allowing users to query for specific invoices through\ntheir add_index. This can be done by using either the first_index_offset or\nlast_index_offset fields included in the response as the index_offset of the\nnext request. By default, the first 100 invoices created will be returned.\nBackwards pagination is also supported through the Reversed flag.",
         "operationId": "ListInvoices",
@@ -1266,12 +1171,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "pending_only",
             "description": "If set, only invoices that are not settled and not canceled will be returned\nin the response.",
@@ -1303,6 +1202,12 @@
             "required": false,
             "type": "boolean",
             "format": "boolean"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1322,12 +1227,6 @@
         },
         "parameters": [
           {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "body",
             "in": "body",
             "required": true,
@@ -1341,7 +1240,48 @@
         ]
       }
     },
-    "/v1/macaroon/{User_Id}": {
+    "/v1/invoices/subscribe": {
+      "get": {
+        "summary": "SubscribeInvoices returns a uni-directional stream (server -\u003e client) for\nnotifying the client of newly added/settled invoices. The caller can\noptionally specify the add_index and/or the settle_index. If the add_index\nis specified, then we'll first start by sending add invoice events for all\ninvoices with an add_index greater than the specified value. If the\nsettle_index is specified, the next, we'll send out all settle events for\ninvoices with a settle_index greater than the specified value. One or both\nof these fields can be set. If no fields are set, then we'll only send out\nthe latest add/settle events.",
+        "operationId": "SubscribeInvoices",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "$ref": "#/x-stream-definitions/lnrpcInvoice"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "add_index",
+            "description": "If specified (non-zero), then we'll first start by sending out\nnotifications for all added indexes with an add_index greater than this\nvalue. This allows callers to catch up on any events they missed while they\nweren't connected to the streaming RPC.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "settle_index",
+            "description": "If specified (non-zero), then we'll first start by sending out\nnotifications for all settled indexes with an settle_index greater than\nthis value. This allows callers to catch up on any events they missed while\nthey weren't connected to the streaming RPC.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/v1/macaroon": {
       "post": {
         "summary": "lncli: `bakemacaroon`\nBakeMacaroon allows the creation of a new macaroon with custom read and\nwrite permissions. No first-party caveats are added since this can be done\noffline.",
         "operationId": "BakeMacaroon",
@@ -1354,12 +1294,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "body",
             "in": "body",
@@ -1374,7 +1308,7 @@
         ]
       }
     },
-    "/v1/newaddress/{User_Id}": {
+    "/v1/newaddress": {
       "get": {
         "summary": "lncli: `newaddress`\nNewAddress creates a new address under control of the local wallet.",
         "operationId": "NewAddress",
@@ -1388,12 +1322,6 @@
         },
         "parameters": [
           {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "type",
             "description": "The address type.",
             "in": "query",
@@ -1406,26 +1334,7 @@
               "UNUSED_NESTED_PUBKEY_HASH"
             ],
             "default": "WITNESS_PUBKEY_HASH"
-          }
-        ],
-        "tags": [
-          "Lightning"
-        ]
-      }
-    },
-    "/v1/payments": {
-      "delete": {
-        "summary": "DeleteAllPayments deletes all outgoing payments from DB.",
-        "operationId": "DeleteAllPayments",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/lnrpcDeleteAllPaymentsResponse"
-            }
-          }
-        },
-        "parameters": [
+          },
           {
             "name": "User_Id",
             "in": "query",
@@ -1438,7 +1347,7 @@
         ]
       }
     },
-    "/v1/payments/{User_Id}": {
+    "/v1/payments": {
       "get": {
         "summary": "lncli: `listpayments`\nListPayments returns a list of all outgoing payments.",
         "operationId": "ListPayments",
@@ -1451,12 +1360,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "include_incomplete",
             "description": "If true, then return payments that have not yet fully completed. This means\nthat pending payments, as well as failed payments will show up if this\nfield is set to true. This flag doesn't change the meaning of the indices,\nwhich are tied to individual payments.",
@@ -1488,6 +1391,35 @@
             "required": false,
             "type": "boolean",
             "format": "boolean"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      },
+      "delete": {
+        "summary": "DeleteAllPayments deletes all outgoing payments from DB.",
+        "operationId": "DeleteAllPayments",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcDeleteAllPaymentsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1495,7 +1427,7 @@
         ]
       }
     },
-    "/v1/payreq/{pay_req}/{User_Id}": {
+    "/v1/payreq/{pay_req}": {
       "get": {
         "summary": "lncli: `decodepayreq`\nDecodePayReq takes an encoded payment request string and attempts to decode\nit, returning a full description of the conditions encoded within the\npayment request.",
         "operationId": "DecodePayReq",
@@ -1517,8 +1449,8 @@
           },
           {
             "name": "User_Id",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -1527,24 +1459,7 @@
         ]
       }
     },
-    "/v1/peers/subscribe": {
-      "get": {
-        "summary": "SubscribePeerEvents creates a uni-directional stream from the server to\nthe client in which any events relevant to the state of peers are sent\nover. Events include peers going online and offline.",
-        "operationId": "SubscribePeerEvents",
-        "responses": {
-          "200": {
-            "description": "A successful response.(streaming responses)",
-            "schema": {
-              "$ref": "#/x-stream-definitions/lnrpcPeerEvent"
-            }
-          }
-        },
-        "tags": [
-          "Lightning"
-        ]
-      }
-    },
-    "/v1/peers/{User_Id}": {
+    "/v1/peers": {
       "get": {
         "summary": "lncli: `listpeers`\nListPeers returns a verbose listing of all currently active peers.",
         "operationId": "ListPeers",
@@ -1558,18 +1473,18 @@
         },
         "parameters": [
           {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "latest_error",
             "description": "If true, only the last error that our peer sent us will be returned with\nthe peer's information, rather than the full set of historic errors we have\nstored.",
             "in": "query",
             "required": false,
             "type": "boolean",
             "format": "boolean"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1589,12 +1504,6 @@
         },
         "parameters": [
           {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "body",
             "in": "body",
             "required": true,
@@ -1603,6 +1512,23 @@
             }
           }
         ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/v1/peers/subscribe": {
+      "get": {
+        "summary": "SubscribePeerEvents creates a uni-directional stream from the server to\nthe client in which any events relevant to the state of peers are sent\nover. Events include peers going online and offline.",
+        "operationId": "SubscribePeerEvents",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "$ref": "#/x-stream-definitions/lnrpcPeerEvent"
+            }
+          }
+        },
         "tags": [
           "Lightning"
         ]
@@ -1640,7 +1566,7 @@
         ]
       }
     },
-    "/v1/signmessage/{User_Id}": {
+    "/v1/signmessage": {
       "post": {
         "summary": "lncli: `signmessage`\nSignMessage signs a message with this node's private key. The returned\nsignature string is `zbase32` encoded and pubkey recoverable, meaning that\nonly the message digest and signature are needed for verification.",
         "operationId": "SignMessage",
@@ -1653,12 +1579,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "body",
             "in": "body",
@@ -1700,7 +1620,7 @@
         ]
       }
     },
-    "/v1/switch/{User_Id}": {
+    "/v1/switch": {
       "post": {
         "summary": "lncli: `fwdinghistory`\nForwardingHistory allows the caller to query the htlcswitch for a record of\nall HTLCs forwarded within the target time range, and integer offset\nwithin that time range. If no time-range is specified, then the first chunk\nof the past 24 hrs of forwarding history are returned.",
         "description": "A list of forwarding events are returned. The size of each forwarding event\nis 40 bytes, and the max message size able to be returned in gRPC is 4 MiB.\nAs a result each message can only contain 50k entries. Each response has\nthe index offset of the last entry. The index offset can be provided to the\nrequest to allow the caller to skip a series of records.",
@@ -1715,12 +1635,6 @@
         },
         "parameters": [
           {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "body",
             "in": "body",
             "required": true,
@@ -1734,115 +1648,7 @@
         ]
       }
     },
-    "/v1/transactions/fee/{User_Id}": {
-      "get": {
-        "summary": "lncli: `estimatefee`\nEstimateFee asks the chain backend to estimate the fee rate and total fees\nfor a transaction that pays to multiple specified outputs.",
-        "description": "When using REST, the `AddrToAmount` map type can be set by appending\n`\u0026AddrToAmount[\u003caddress\u003e]=\u003camount_to_send\u003e` to the URL. Unfortunately this\nmap type doesn't appear in the REST API documentation because of a bug in\nthe grpc-gateway library.",
-        "operationId": "EstimateFee",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/lnrpcEstimateFeeResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "target_conf",
-            "description": "The target number of blocks that this transaction should be confirmed\nby.",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "tags": [
-          "Lightning"
-        ]
-      }
-    },
-    "/v1/transactions/many/{User_Id}": {
-      "post": {
-        "summary": "lncli: `sendmany`\nSendMany handles a request for a transaction that creates multiple specified\noutputs in parallel. If neither target_conf, or sat_per_byte are set, then\nthe internal wallet will consult its fee model to determine a fee for the\ndefault confirmation target.",
-        "operationId": "SendMany",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/lnrpcSendManyResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/lnrpcSendManyRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Lightning"
-        ]
-      }
-    },
-    "/v1/transactions/subscribe/{User_Id}": {
-      "get": {
-        "summary": "SubscribeTransactions creates a uni-directional stream from the server to\nthe client in which any newly discovered transactions relevant to the\nwallet are sent over.",
-        "operationId": "SubscribeTransactions",
-        "responses": {
-          "200": {
-            "description": "A successful response.(streaming responses)",
-            "schema": {
-              "$ref": "#/x-stream-definitions/lnrpcTransaction"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "start_height",
-            "description": "The height from which to list transactions, inclusive. If this value is\ngreater than end_height, transactions will be read in reverse.",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "end_height",
-            "description": "The height until which to list transactions, inclusive. To include\nunconfirmed transactions, this value should be set to -1, which will\nreturn transactions from start_height until the current chain tip and\nunconfirmed transactions. If no end_height is provided, the call will\ndefault to this option.",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "tags": [
-          "Lightning"
-        ]
-      }
-    },
-    "/v1/transactions/{User_Id}": {
+    "/v1/transactions": {
       "get": {
         "summary": "lncli: `listchaintxns`\nGetTransactions returns a list describing all the known transactions\nrelevant to the wallet.",
         "operationId": "GetTransactions",
@@ -1856,12 +1662,6 @@
         },
         "parameters": [
           {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "start_height",
             "description": "The height from which to list transactions, inclusive. If this value is\ngreater than end_height, transactions will be read in reverse.",
             "in": "query",
@@ -1876,6 +1676,12 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1895,12 +1701,6 @@
         },
         "parameters": [
           {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "body",
             "in": "body",
             "required": true,
@@ -1914,7 +1714,109 @@
         ]
       }
     },
-    "/v1/utxos/{User_Id}": {
+    "/v1/transactions/fee": {
+      "get": {
+        "summary": "lncli: `estimatefee`\nEstimateFee asks the chain backend to estimate the fee rate and total fees\nfor a transaction that pays to multiple specified outputs.",
+        "description": "When using REST, the `AddrToAmount` map type can be set by appending\n`\u0026AddrToAmount[\u003caddress\u003e]=\u003camount_to_send\u003e` to the URL. Unfortunately this\nmap type doesn't appear in the REST API documentation because of a bug in\nthe grpc-gateway library.",
+        "operationId": "EstimateFee",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcEstimateFeeResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "target_conf",
+            "description": "The target number of blocks that this transaction should be confirmed\nby.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/v1/transactions/many": {
+      "post": {
+        "summary": "lncli: `sendmany`\nSendMany handles a request for a transaction that creates multiple specified\noutputs in parallel. If neither target_conf, or sat_per_byte are set, then\nthe internal wallet will consult its fee model to determine a fee for the\ndefault confirmation target.",
+        "operationId": "SendMany",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcSendManyResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/lnrpcSendManyRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/v1/transactions/subscribe": {
+      "get": {
+        "summary": "SubscribeTransactions creates a uni-directional stream from the server to\nthe client in which any newly discovered transactions relevant to the\nwallet are sent over.",
+        "operationId": "SubscribeTransactions",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "$ref": "#/x-stream-definitions/lnrpcTransaction"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "start_height",
+            "description": "The height from which to list transactions, inclusive. If this value is\ngreater than end_height, transactions will be read in reverse.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "end_height",
+            "description": "The height until which to list transactions, inclusive. To include\nunconfirmed transactions, this value should be set to -1, which will\nreturn transactions from start_height until the current chain tip and\nunconfirmed transactions. If no end_height is provided, the call will\ndefault to this option.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/v1/utxos": {
       "get": {
         "summary": "lncli: `listunspent`\nDeprecated, use walletrpc.ListUnspent instead.",
         "description": "ListUnspent returns a list of all utxos spendable by the wallet with a\nnumber of confirmations between the specified minimum and maximum.",
@@ -1928,12 +1830,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "min_confs",
             "description": "The minimum number of confirmations to be included.",
@@ -1949,6 +1845,12 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1956,7 +1858,7 @@
         ]
       }
     },
-    "/v1/verifymessage/{User_Id}": {
+    "/v1/verifymessage": {
       "post": {
         "summary": "lncli: `verifymessage`\nVerifyMessage verifies a signature over a msg. The signature must be\nzbase32 encoded and signed by an active node in the resident node's\nchannel database. In addition to returning the validity of the signature,\nVerifyMessage also returns the recovered pubkey from the signature.",
         "operationId": "VerifyMessage",
@@ -1969,12 +1871,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "User_Id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "body",
             "in": "body",
