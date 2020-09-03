@@ -152,7 +152,7 @@ func New(cfg Config, UserId string) (*Server, lnrpc.MacaroonPerms, error) {
 	// assume that it's found at the default network directory.
 	graphDir := filepath.Join("test_data_PrvW",
 			"graph",
-			"simnet", UserId)
+			"testnet", UserId)
 	if cfg.RouterMacPath == "" {
 		cfg.RouterMacPath = filepath.Join(
 			graphDir, DefaultRouterMacFilename,
