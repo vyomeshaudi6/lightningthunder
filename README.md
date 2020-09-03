@@ -171,7 +171,7 @@ Output:
 Replace `User_Id` `userPORT` with correct value.
 
     ~/gocode/dev$  MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 /home/ubuntu/gocode/dev/test_data_PrvW/graph/testnet/User_Id/admin.macaroon)"
-    ~/gocode/dev$  curl -X GET  --insecure --cacert ~/.lnd/tls.cert --header "$MACAROON_HEADER" https://127.0.0.1:userPORT/v1/getinfo/User_Id
+    ~/gocode/dev$  curl -X GET  --insecure --cacert ~/.lnd/tls.cert --header "$MACAROON_HEADER" https://127.0.0.1:userPORT/v1/getinfo
 
 Output:
 
@@ -201,7 +201,7 @@ Output:
 Replace `User_Id``userPORT` with correct value.
 
     ~/gocode/dev$  MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 /home/ubuntu/gocode/dev/test_data_PrvW/graph/testnet/User_Id/admin.macaroon)"
-    ~/gocode/dev$  curl -X GET  --insecure --cacert ~/.lnd/tls.cert --header "$MACAROON_HEADER" https://127.0.0.1:userPORT/v1/invoices/User_Id
+    ~/gocode/dev$  curl -X GET  --insecure --cacert ~/.lnd/tls.cert --header "$MACAROON_HEADER" https://127.0.0.1:userPORT/v1/invoices
 
 Output:
 
@@ -216,7 +216,7 @@ Output:
 Replace `User_Id``userPORT` with correct value.
 
     ~/gocode/dev$  MACAROON_HEADER="Grpc-Metadata-macaroon: $(xxd -ps -u -c 1000 /home/ubuntu/gocode/dev/test_data_PrvW/graph/testnet/User_Id/admin.macaroon)"
-    ~/gocode/dev$  curl -X POST --cacert ~/.lnd/tls.cert --header "$MACAROON_HEADER" https://localhost:userPORT/v1/invoices/User_Id -d '{ "value":"100" }'
+    ~/gocode/dev$  curl -X POST --cacert ~/.lnd/tls.cert --header "$MACAROON_HEADER" https://localhost:userPORT/v1/invoices -d '{ "value":"100" }'
 
 Output:
 
