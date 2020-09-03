@@ -273,6 +273,8 @@ type Config struct {
 	// network. This path will hold the files related to each different
 	// network.
 	networkDir string
+	//vyomesh code edit 
+	graphDir string
 }
 
 // DefaultConfig returns all default values for the Config struct.

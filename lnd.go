@@ -58,7 +58,6 @@ var (
 	// network. This path will hold the files related to each different
 	// network.
 	networkDir         string
-	graphDir           string
 	RpcserverInstances []*rpcServer
 	UserId             string // added userid for multiple server instances and passed to new server func
 	cfg		   *Config
@@ -103,13 +102,13 @@ func AdminAuthOptions(cfg *Config) ([]grpc.DialOption, error) {
 	if !cfg.NoMacaroons {
 	//--code edit  giving custom macaroon path according to the user id for storing macaroon files of each respective node into their current directory
 		cfg.AdminMacPath = filepath.Join(
-			graphDir, DefaultAdminMacFilename,
+			cfg.graphDir, DefaultAdminMacFilename,
 		)
 		cfg.ReadMacPath = filepath.Join(
-			graphDir, DefaultReadMacFilename,
+			cfg.graphDir, DefaultReadMacFilename,
 		)
 		cfg.InvoiceMacPath = filepath.Join(
-			graphDir, DefaultInvoiceMacFilename,
+			cfg.graphDir, DefaultInvoiceMacFilename,
 		)
 		// Load the adming macaroon file.
 		macBytes, err := ioutil.ReadFile(cfg.AdminMacPath)
@@ -507,24 +506,24 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 
 		//--code edit  giving custom macaroon path according to the user id for storing macaroon files of each respective node into their current directory
 		cfg.AdminMacPath = filepath.Join(
-			graphDir, DefaultAdminMacFilename,
+			cfg.graphDir, DefaultAdminMacFilename,
 		)
 		cfg.ReadMacPath = filepath.Join(
-			graphDir, DefaultReadMacFilename,
+			cfg.graphDir, DefaultReadMacFilename,
 		)
 		cfg.InvoiceMacPath = filepath.Join(
-			graphDir, DefaultInvoiceMacFilename,
+			cfg.graphDir, DefaultInvoiceMacFilename,
 		)
 		//--code edit  giving custom channelbackup  path according to the user id for storing backup files of each respective node into their current directory
 		cfg.BackupFilePath = filepath.Join(
-			graphDir, DefaultBackupFileName,
+			cfg.graphDir, DefaultBackupFileName,
 		)
 
 		var macaroonService *macaroons.Service
 		if !cfg.NoMacaroons {
 			// Create the macaroon authentication/authorization service.
 			macaroonService, err = macaroons.NewService(
-				graphDir, macaroons.IPLockChecker,
+				cfg.graphDir, macaroons.IPLockChecker,
 			)
 			if err != nil {
 				err := fmt.Errorf("unable to set up macaroon "+
@@ -1114,7 +1113,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	// deleted within it and recreated when successfully changing the
 	// wallet's password.
 	macaroonFiles := []string{
-		filepath.Join(graphDir, macaroons.DBFilename),
+		filepath.Join(cfg.graphDir, macaroons.DBFilename),
 		cfg.AdminMacPath, cfg.ReadMacPath, cfg.InvoiceMacPath,
 	}
 	
@@ -1224,23 +1223,24 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 		//netDir := btcwallet.NetworkDir(
 		//	chainConfig.ChainDir, activeNetParams.Params,
 		//)
-		graphDir = filepath.Join("test_data_PrvW",
+		cfg.graphDir = filepath.Join("test_data_PrvW",
 			defaultGraphSubDirname,
 			normalizeNetwork(activeNetParams.Name), initMsg.UniqueId)
-		netDir := graphDir
+		netDir := cfg.graphDir
 		//--code edit  giving custom macaroon path according to the user id for storing macaroon files of each respective node into their current directory
 		cfg.AdminMacPath = filepath.Join(
-			graphDir, DefaultAdminMacFilename,
+			cfg.graphDir, DefaultAdminMacFilename,
 		)
 		cfg.ReadMacPath = filepath.Join(
-			graphDir, DefaultReadMacFilename,
+			cfg.graphDir, DefaultReadMacFilename,
 		)
 		cfg.InvoiceMacPath = filepath.Join(
-			graphDir, DefaultInvoiceMacFilename,
+			cfg.graphDir, DefaultInvoiceMacFilename,
 		)
+		
 		//--code edit  giving custom channelbackup  path according to the user id for storing backup files of each respective node into their current directory
 		cfg.BackupFilePath = filepath.Join(
-			graphDir, DefaultBackupFileName,
+			cfg.graphDir, DefaultBackupFileName,
 		)
 		//code modify by -----end--------
 		loader := wallet.NewLoader(
@@ -1313,7 +1313,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	// unlocked. So we'll just return these passphrases.
 	case unlockMsg := <-pwService.UnlockMsgs:
 		/////----channel.db -----
-         	graphDir = filepath.Join("test_data_PrvW",
+         	cfg.graphDir = filepath.Join("test_data_PrvW",
 			defaultGraphSubDirname,
 			normalizeNetwork(activeNetParams.Name), unlockMsg.UniqueId)
 		chanDbBackend, err := cfg.DB.GetBackend(ctx,
@@ -1325,17 +1325,17 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 		}
 //--code edit  giving custom macaroon path according to the user id for storing macaroon files of each respective node into their current directory
 		cfg.AdminMacPath = filepath.Join(
-			graphDir, DefaultAdminMacFilename,
+			cfg.graphDir, DefaultAdminMacFilename,
 		)
 		cfg.ReadMacPath = filepath.Join(
-			graphDir, DefaultReadMacFilename,
+			cfg.graphDir, DefaultReadMacFilename,
 		)
 		cfg.InvoiceMacPath = filepath.Join(
-			graphDir, DefaultInvoiceMacFilename,
+			cfg.graphDir, DefaultInvoiceMacFilename,
 		)
 		//--code edit  giving custom channelbackup  path according to the user id for storing backup files of each respective node into their current directory
 		cfg.BackupFilePath = filepath.Join(
-			graphDir, DefaultBackupFileName,
+			cfg.graphDir, DefaultBackupFileName,
 		)
 		ltndLog.Infof("lnd.go before opening channeldb.open")
 		// Open the channeldb, which is dedicated to storing channel, and
