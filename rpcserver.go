@@ -2508,7 +2508,7 @@ func (r *rpcServer) GetInfo(ctx context.Context,
 
 	// TODO(roasbeef): add synced height n stuff
 	return &lnrpc.GetInfoResponse{
-		User_Id:             in.User_Id,
+		User_Id:             r.server.User_Id,
 		IdentityPubkey:      encodedIDPub,
 		NumPendingChannels:  nPendingChannels,
 		NumActiveChannels:   activeChannels,
