@@ -103,16 +103,6 @@ func AdminAuthOptions(cfg *Config) ([]grpc.DialOption, error) {
 
 	// Get the admin macaroon if macaroons are active.
 	if !cfg.NoMacaroons {
-	//--code edit  giving custom macaroon path according to the user id for storing macaroon files of each respective node into their current directory
-		cfg.AdminMacPath = filepath.Join(
-			cfg.graphDir, DefaultAdminMacFilename,
-		)
-		cfg.ReadMacPath = filepath.Join(
-			cfg.graphDir, DefaultReadMacFilename,
-		)
-		cfg.InvoiceMacPath = filepath.Join(
-			cfg.graphDir, DefaultInvoiceMacFilename,
-		)
 		// Load the adming macaroon file.
 		macBytes, err := ioutil.ReadFile(cfg.AdminMacPath)
 		if err != nil {
@@ -288,38 +278,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	/*
-		ChanDbBackend, err := cfg.DB.GetBackend(ctx,
-			cfg.localDatabaseDir(), cfg.networkName(),
-		)
-		if err != nil {
-			ltndLog.Error(err)
-			return err
-		}
-
-			// Open the channeldb, which is dedicated to storing channel, and
-			// network related metadata.
-			chanDB, err := channeldb.CreateWithBackend(
-				chanDbBackend,
-				channeldb.OptionSetRejectCacheSize(cfg.Caches.RejectCacheSize),
-				channeldb.OptionSetChannelCacheSize(cfg.Caches.ChannelCacheSize),
-				channeldb.OptionSetSyncFreelist(cfg.SyncFreelist),
-				channeldb.OptionDryRunMigration(cfg.DryRunMigration),
-			)
-			switch {
-			case err == channeldb.ErrDryRunMigrationOK:
-				ltndLog.Infof("%v, exiting", err)
-				return nil
-
-			case err != nil:
-				ltndLog.Errorf("Unable to open channeldb: %v", err)
-				return err
-			}
-			defer chanDB.Close()
-
-			openTime := time.Since(startOpenTime)
-			ltndLog.Infof("Database now open (time_to_open=%v)!", openTime)
-	*/
+	
 	// Only process macaroons if --no-macaroons isn't set.
 	tlsCfg, restCreds, err := getTLSConfig(cfg)
 	if err != nil {
@@ -1235,21 +1194,6 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 			defaultGraphSubDirname,
 			normalizeNetwork(activeNetParams.Name), initMsg.UniqueId)
 		netDir := cfg.graphDir
-		//--code edit  giving custom macaroon path according to the user id for storing macaroon files of each respective node into their current directory
-		cfg.AdminMacPath = filepath.Join(
-			cfg.graphDir, DefaultAdminMacFilename,
-		)
-		cfg.ReadMacPath = filepath.Join(
-			cfg.graphDir, DefaultReadMacFilename,
-		)
-		cfg.InvoiceMacPath = filepath.Join(
-			cfg.graphDir, DefaultInvoiceMacFilename,
-		)
-		
-		//--code edit  giving custom channelbackup  path according to the user id for storing backup files of each respective node into their current directory
-		cfg.BackupFilePath = filepath.Join(
-			cfg.graphDir, DefaultBackupFileName,
-		)
 		//code modify by -----end--------
 		loader := wallet.NewLoader(
 			activeNetParams.Params, netDir, !cfg.SyncFreelist,
@@ -1331,20 +1275,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 			ltndLog.Error(err)
 			return nil, err
 		}
-//--code edit  giving custom macaroon path according to the user id for storing macaroon files of each respective node into their current directory
-		cfg.AdminMacPath = filepath.Join(
-			cfg.graphDir, DefaultAdminMacFilename,
-		)
-		cfg.ReadMacPath = filepath.Join(
-			cfg.graphDir, DefaultReadMacFilename,
-		)
-		cfg.InvoiceMacPath = filepath.Join(
-			cfg.graphDir, DefaultInvoiceMacFilename,
-		)
-		//--code edit  giving custom channelbackup  path according to the user id for storing backup files of each respective node into their current directory
-		cfg.BackupFilePath = filepath.Join(
-			cfg.graphDir, DefaultBackupFileName,
-		)
+
 		ltndLog.Infof("lnd.go before opening channeldb.open")
 		// Open the channeldb, which is dedicated to storing channel, and
 		// network related metadata.
