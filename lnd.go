@@ -61,6 +61,9 @@ var (
 	RpcserverInstances []*rpcServer
 	UserId             string // added userid for multiple server instances and passed to new server func
 	cfg		   *Config
+	rpcPortListening   string
+	restPortListening  string
+	peerPortListening  string
 )
 
 // WalletUnlockerAuthOptions returns a list of DialOptions that can be used to
@@ -480,6 +483,11 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 				restProxyDest, "[::]", "[::1]", 1,
 			)
 		}
+		//walletaction response port for each node
+		rpcPortListening = cfg.RPCListeners[i+1].String()
+		restPortListening = cfg.RESTListeners[i+1].String()
+		peerPortListening = cfg.Listeners[i].String()
+
 		if !cfg.NoSeedBackup {
 			params, err := waitForWalletPassword(
 				cfg, cfg.RESTListeners, serverOpts, restDialOpts,
@@ -1121,7 +1129,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	//macaroonFiles := []string{}
 	pwService := walletunlocker.New(
 		chainConfig.ChainDir, activeNetParams.Params, !cfg.SyncFreelist,
-		macaroonFiles,
+		macaroonFiles,rpcPortListening,restPortListening,peerPortListening,
 	)
 	lnrpc.RegisterWalletUnlockerServer(grpcServer, pwService)
 

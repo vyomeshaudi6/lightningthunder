@@ -104,18 +104,28 @@ type UnlockerService struct {
 	noFreelistSync bool
 	netParams      *chaincfg.Params
 	macaroonFiles  []string
-}
 
+}
+var(
+	RpcPortListening string
+	RestPortListening string
+	PeerPortListening string
+)
 // New creates and returns a new UnlockerService.
 func New(chainDir string, params *chaincfg.Params, noFreelistSync bool,
-	macaroonFiles []string) *UnlockerService {
+	macaroonFiles []string,rpcPortListening string,restPortListening string,peerPortListening string) *UnlockerService {
+	//response port initialize
+	RpcPortListening = rpcPortListening
+	RestPortListening = restPortListening
+	PeerPortListening = peerPortListening
 
 	return &UnlockerService{
-		InitMsgs:      make(chan *WalletInitMsg, 1),
-		UnlockMsgs:    make(chan *WalletUnlockMsg, 1),
-		chainDir:      chainDir,
-		netParams:     params,
-		macaroonFiles: macaroonFiles,
+		InitMsgs:          make(chan *WalletInitMsg, 1),
+		UnlockMsgs:        make(chan *WalletUnlockMsg, 1),
+		chainDir:          chainDir,
+		netParams:         params,
+		macaroonFiles: 	   macaroonFiles,
+
 	}
 }
 
@@ -323,7 +333,11 @@ func (u *UnlockerService) InitWallet(ctx context.Context,
 
 	u.InitMsgs <- initMsg
 
-	return &lnrpc.InitWalletResponse{}, nil
+	return &lnrpc.InitWalletResponse{
+		RpcPortListening:  RpcPortListening,
+		RestPortListening: RestPortListening,
+		PeerPortListening: PeerPortListening,
+	}, nil
 }
 
 // UnlockWallet sends the password provided by the incoming UnlockWalletRequest
@@ -386,7 +400,11 @@ func (u *UnlockerService) UnlockWallet(ctx context.Context,
 	// channel, such that it can be used by lnd to open the wallet.
 	u.UnlockMsgs <- walletUnlockMsg
 
-	return &lnrpc.UnlockWalletResponse{}, nil
+	return &lnrpc.UnlockWalletResponse{
+		RpcPortListening:  RpcPortListening,
+		RestPortListening: RestPortListening,
+		PeerPortListening: PeerPortListening,
+	}, nil
 }
 
 // ChangePassword changes the password of the wallet and sends the new password

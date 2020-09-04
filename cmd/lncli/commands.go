@@ -1470,12 +1470,12 @@ mnemonicCheck:
 		ChannelBackups:     chanBackups,
 		User_Id:            UniqueId,
 	}
-	if _, err := client.InitWallet(ctxb, req); err != nil {
+	 resp, err := client.InitWallet(ctxb, req)
+        if err != nil {
 		return err
 	}
 
-	fmt.Println("\nlnd successfully initialized!")
-
+	fmt.Println("\nlnd successfully initialized!\nrpc port listening on  : "+ resp.RpcPortListening +"\nrest port listening on : "+ resp.RestPortListening +"\npeer port listening on : "+ resp.PeerPortListening)
 	return nil
 }
 
@@ -1620,12 +1620,11 @@ func unlock(ctx *cli.Context) error {
 		RecoveryWindow: recoveryWindow,
 		User_Id:        UniqueId,
 	}
-	_, err = client.UnlockWallet(ctxb, req)
+	resp, err := client.UnlockWallet(ctxb, req)
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("\nlnd successfully unlocked!")
+	fmt.Println("\nlnd successfully Unlocked!\nrpc port listening on  : "+ resp.RpcPortListening +"\nrest port listening on : "+ resp.RestPortListening +"\npeer port listening on : "+ resp.PeerPortListening)
 
 	// TODO(roasbeef): add ability to accept hex single and multi backups
 

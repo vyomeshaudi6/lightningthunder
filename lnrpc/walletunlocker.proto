@@ -145,6 +145,9 @@ message InitWalletRequest {
     string User_Id = 6;
 }
 message InitWalletResponse {
+    string RpcPortListening = 1;
+    string RestPortListening = 2;
+    string PeerPortListening = 3;
 }
 
 message UnlockWalletRequest {
@@ -176,6 +179,9 @@ message UnlockWalletRequest {
     string User_Id = 4;
 }
 message UnlockWalletResponse {
+    string RpcPortListening = 1;
+    string RestPortListening = 2;
+    string PeerPortListening = 3;
 }
 
 message ChangePasswordRequest {
