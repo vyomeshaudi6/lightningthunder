@@ -1513,7 +1513,6 @@ message GetInfoResponse {
     announcements and invoices.
     */
     map<uint32, Feature> features = 19;
- string User_Id = 21;
 }
 
 message GetRecoveryInfoRequest {

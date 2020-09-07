@@ -3438,9 +3438,6 @@
             "$ref": "#/definitions/lnrpcFeature"
           },
           "description": "Features that our node has advertised in our init message, node\nannouncements and invoices."
-        },
-        "User_Id": {
-          "type": "string"
         }
       }
     },

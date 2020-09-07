@@ -295,13 +295,13 @@
     "lnrpcInitWalletResponse": {
       "type": "object",
       "properties": {
-        "rpcPortListening": {
+        "RpcPortListening": {
           "type": "string"
         },
-        "restPortListening": {
+        "RestPortListening": {
           "type": "string"
         },
-        "peerPortListening": {
+        "PeerPortListening": {
           "type": "string"
         }
       }
@@ -348,13 +348,13 @@
     "lnrpcUnlockWalletResponse": {
       "type": "object",
       "properties": {
-        "rpcPortListening": {
+        "RpcPortListening": {
           "type": "string"
         },
-        "restPortListening": {
+        "RestPortListening": {
           "type": "string"
         },
-        "peerPortListening": {
+        "PeerPortListening": {
           "type": "string"
         }
       }
