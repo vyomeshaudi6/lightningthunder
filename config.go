@@ -200,7 +200,7 @@ type Config struct {
 
 	Tor *lncfg.Tor `group:"Tor" namespace:"tor"`
 
-	SubRPCServers subRPCServerConfigs `group:"subrpc"`
+	SubRPCServers subRPCServerConfigs `group:"subrpc"`//code added start added
 
 	Hodl *hodl.Config `group:"hodl" namespace:"hodl"`
 
@@ -332,7 +332,7 @@ func DefaultConfig() Config {
 		MinBackoff:         defaultMinBackoff,
 		MaxBackoff:         defaultMaxBackoff,
 		SubRPCServers: subRPCServerConfigs{
-			SignRPC:   &signrpc.Config{},
+			SignRPC:   &signrpc.Config{},//code edit
 			RouterRPC: routerrpc.DefaultConfig(),
 		},
 		Autopilot: &lncfg.AutoPilot{
@@ -430,7 +430,7 @@ func LoadConfig(User_Id string) (*Config, error) {
 			defaultGraphSubDirname,
 			normalizeNetwork(activeNetParams.Name), User_Id,lncfg.DefaultConfigFilename)
 
-	if User_Id != "" && !fileExists(customlndConfigPath) {
+	if User_Id != "" {
 	 preCfg.ConfigFile = CleanAndExpandPath(customlndConfigPath)
 	 configFilePath = CleanAndExpandPath(customlndConfigPath)
 	 }
@@ -449,7 +449,6 @@ func LoadConfig(User_Id string) (*Config, error) {
 
 		configFileError = err
 	}
-	fmt.Println("cfg.ConfigFile : %t , configFilePath : %t , cfg.LndDir %t",cfg.ConfigFile,configFilePath ,cfg.LndDir)
 	// Finally, parse the remaining command line options again to ensure
 	// they take precedence.
 	if _, err := flags.Parse(&cfg); err != nil {

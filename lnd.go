@@ -61,6 +61,7 @@ var (
 	RpcserverInstances []*rpcServer
 	UserId             string // added userid for multiple server instances and passed to new server func
 	Cfg		   *Config
+	Controller_Config  *Config
 	rpcPortListening   string
 	restPortListening  string
 	peerPortListening  string
@@ -213,6 +214,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 		return err
 	}
 	Cfg = loadedConfig
+	Controller_Config = loadedConfig
 	defer func() {
 		ltndLog.Info("Shutdown complete")
 		err := Cfg.LogWriter.Close()
@@ -1247,11 +1249,14 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 		UserId = initMsg.UniqueId
 		
 		//custom configuration code edit for each node
-		loadedConfig, err := LoadConfig(UserId) //returns a new instance of config according
-		if err != nil {
-		return nil,err
-		}
-		Cfg = loadedConfig		
+		Cfg = Controller_Config
+                if fileExists(Confg.graphDir + "/" + lncfg.DefaultConfigFilename) {
+		 loadedConfig, err := LoadConfig(UserId) //returns a new instance of config accordingly
+		 if err != nil {
+		   return nil,err
+		 }
+		 Cfg = loadedConfig
+		}		
 		ltndLog.Infof("config file path" + Cfg.ConfigFile)
 		return &WalletUnlockParams{
 			Password:       password,
@@ -1300,11 +1305,15 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 		UserId = unlockMsg.UniqueId
 
 		//custom configuration code edit for each node
-		loadedConfig, err := LoadConfig(UserId) //returns a new instance of config accordingly
-		if err != nil {
-		return nil,err
+		Cfg = Controller_Config
+                if fileExists(Confg.graphDir + "/" + lncfg.DefaultConfigFilename) {
+		 loadedConfig, err := LoadConfig(UserId) //returns a new instance of config accordingly
+		 if err != nil {
+		   return nil,err
+		 }
+		 Cfg = loadedConfig
 		}
-		Cfg = loadedConfig
+		
 ltndLog.Infof("config file path" + Cfg.ConfigFile)
 		return &WalletUnlockParams{
 			Password:       unlockMsg.Passphrase,
