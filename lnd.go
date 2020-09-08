@@ -1187,18 +1187,32 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 				cipherSeed.InternalVersion,
 				keychain.KeyDerivationVersion)
 		}
-
+		Confg.graphDir = filepath.Join("test_data_PrvW",
+			defaultGraphSubDirname,
+			normalizeNetwork(activeNetParams.Name), initMsg.UniqueId)
+		// added userid for multiple server instance
+		UserId = initMsg.UniqueId
+		//custom configuration code edit for each node
+		Cfg = Controller_Config
+                if fileExists(Confg.graphDir + "/" + lncfg.DefaultConfigFilename) {
+		 loadedConfig, err := LoadConfig(UserId) //returns a new instance of config accordingly
+		 if err != nil {
+		   return nil,err
+		 }
+		 Cfg = loadedConfig
+		}		
+		ltndLog.Infof("config file path" + Cfg.ConfigFile)
 		//code modify by -----start--------
 		//netDir := btcwallet.NetworkDir(
 		//	chainConfig.ChainDir, activeNetParams.Params,
 		//)
-		Confg.graphDir = filepath.Join("test_data_PrvW",
+		Cfg.graphDir = filepath.Join("test_data_PrvW",
 			defaultGraphSubDirname,
 			normalizeNetwork(activeNetParams.Name), initMsg.UniqueId)
-		netDir := Confg.graphDir
+		netDir := Cfg.graphDir
 		//code modify by -----end--------
 		loader := wallet.NewLoader(
-			activeNetParams.Params, netDir, !Confg.SyncFreelist,
+			activeNetParams.Params, netDir, !Cfg.SyncFreelist,
 			recoveryWindow,
 		)
 
@@ -1218,8 +1232,8 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 			return nil, err
 		}
 		/////----channel.db -----
-		chanDbBackend, err := Confg.DB.GetBackend(ctx,
-			Confg.localDatabaseDir(initMsg.UniqueId), Confg.networkName(),
+		chanDbBackend, err := Cfg.DB.GetBackend(ctx,
+			Cfg.localDatabaseDir(initMsg.UniqueId), Cfg.networkName(),
 		)
 		if err != nil {
 			ltndLog.Error(err)
@@ -1230,10 +1244,10 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 		// network related metadata.
 		ChanDB, err = channeldb.CreateWithBackend(
 			chanDbBackend,
-			channeldb.OptionSetRejectCacheSize(Confg.Caches.RejectCacheSize),
-			channeldb.OptionSetChannelCacheSize(Confg.Caches.ChannelCacheSize),
-			channeldb.OptionSetSyncFreelist(Confg.SyncFreelist),
-			channeldb.OptionDryRunMigration(Confg.DryRunMigration),
+			channeldb.OptionSetRejectCacheSize(Cfg.Caches.RejectCacheSize),
+			channeldb.OptionSetChannelCacheSize(Cfg.Caches.ChannelCacheSize),
+			channeldb.OptionSetSyncFreelist(Cfg.SyncFreelist),
+			channeldb.OptionDryRunMigration(Cfg.DryRunMigration),
 		)
 		switch {
 		case err == channeldb.ErrDryRunMigrationOK:
@@ -1245,19 +1259,6 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 			return nil, err
 		}
 		ltndLog.Infof("lnd.go after opening channeldb.open channeled opened success")
-		// added userid for multiple server instance
-		UserId = initMsg.UniqueId
-		
-		//custom configuration code edit for each node
-		Cfg = Controller_Config
-                if fileExists(Confg.graphDir + "/" + lncfg.DefaultConfigFilename) {
-		 loadedConfig, err := LoadConfig(UserId) //returns a new instance of config accordingly
-		 if err != nil {
-		   return nil,err
-		 }
-		 Cfg = loadedConfig
-		}		
-		ltndLog.Infof("config file path" + Cfg.ConfigFile)
 		return &WalletUnlockParams{
 			Password:       password,
 			Birthday:       birthday,
@@ -1269,12 +1270,28 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 	// The wallet has already been created in the past, and is simply being
 	// unlocked. So we'll just return these passphrases.
 	case unlockMsg := <-pwService.UnlockMsgs:
-		/////----channel.db -----
-         	Confg.graphDir = filepath.Join("test_data_PrvW",
+		Confg.graphDir = filepath.Join("test_data_PrvW",
 			defaultGraphSubDirname,
 			normalizeNetwork(activeNetParams.Name), unlockMsg.UniqueId)
-		chanDbBackend, err := Confg.DB.GetBackend(ctx,
-			Confg.localDatabaseDir(unlockMsg.UniqueId), Confg.networkName(),
+		// added userid for multiple server instance
+		UserId = unlockMsg.UniqueId
+		//custom configuration code edit for each node
+		Cfg = Controller_Config
+                if fileExists(Confg.graphDir + "/" + lncfg.DefaultConfigFilename) {
+		 loadedConfig, err := LoadConfig(UserId) //returns a new instance of config accordingly
+		 if err != nil {
+		   return nil,err
+		 }
+		 Cfg = loadedConfig
+		}
+		
+		ltndLog.Infof("config file path" + Cfg.ConfigFile)
+		/////----channel.db -----
+         	Cfg.graphDir = filepath.Join("test_data_PrvW",
+			defaultGraphSubDirname,
+			normalizeNetwork(activeNetParams.Name), unlockMsg.UniqueId)
+		chanDbBackend, err := Cfg.DB.GetBackend(ctx,
+			Cfg.localDatabaseDir(unlockMsg.UniqueId), Cfg.networkName(),
 		)
 		if err != nil {
 			ltndLog.Error(err)
@@ -1286,10 +1303,10 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 		// network related metadata.
 		ChanDB, err = channeldb.CreateWithBackend(
 			chanDbBackend,
-			channeldb.OptionSetRejectCacheSize(Confg.Caches.RejectCacheSize),
-			channeldb.OptionSetChannelCacheSize(Confg.Caches.ChannelCacheSize),
-			channeldb.OptionSetSyncFreelist(Confg.SyncFreelist),
-			channeldb.OptionDryRunMigration(Confg.DryRunMigration),
+			channeldb.OptionSetRejectCacheSize(Cfg.Caches.RejectCacheSize),
+			channeldb.OptionSetChannelCacheSize(Cfg.Caches.ChannelCacheSize),
+			channeldb.OptionSetSyncFreelist(Cfg.SyncFreelist),
+			channeldb.OptionDryRunMigration(Cfg.DryRunMigration),
 		)
 		switch {
 		case err == channeldb.ErrDryRunMigrationOK:
@@ -1301,20 +1318,7 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 			return nil, err
 		}
 		ltndLog.Infof("lnd.go after opening channeldb.open channeled opened success")
-		// added userid for multiple server instance
-		UserId = unlockMsg.UniqueId
-
-		//custom configuration code edit for each node
-		Cfg = Controller_Config
-                if fileExists(Confg.graphDir + "/" + lncfg.DefaultConfigFilename) {
-		 loadedConfig, err := LoadConfig(UserId) //returns a new instance of config accordingly
-		 if err != nil {
-		   return nil,err
-		 }
-		 Cfg = loadedConfig
-		}
-		
-ltndLog.Infof("config file path" + Cfg.ConfigFile)
+				
 		return &WalletUnlockParams{
 			Password:       unlockMsg.Passphrase,
 			RecoveryWindow: unlockMsg.RecoveryWindow,

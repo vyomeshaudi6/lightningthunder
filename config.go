@@ -22,7 +22,7 @@ import (
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lightningnetwork/lnd/autopilot"
 	"github.com/lightningnetwork/lnd/build"
-	"github.com/lightningnetwork/lnd/chanbackup"
+	//"github.com/lightningnetwork/lnd/chanbackup"
 	"github.com/lightningnetwork/lnd/channeldb"
 	"github.com/lightningnetwork/lnd/discovery"
 	"github.com/lightningnetwork/lnd/htlcswitch"
@@ -946,7 +946,7 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, error) {
 			cfg.networkDir, DefaultInvoiceMacFilename,
 		)
 	}
-*/
+
 	// Similarly, if a custom back up file path wasn't specified, then
 	// we'll update the file location to match our set network directory.
 	if cfg.BackupFilePath == "" {
@@ -954,7 +954,7 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, error) {
 			cfg.networkDir, chanbackup.DefaultBackupFileName,
 		)
 	}
-
+*/
 	// Append the network type to the log directory so it is "namespaced"
 	// per network in the same fashion as the data directory.
 	cfg.LogDir = filepath.Join(cfg.LogDir,
