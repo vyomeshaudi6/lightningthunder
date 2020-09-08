@@ -745,7 +745,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 				restProxyDest, "[::]", "[::1]", 1,
 			)
 		}
-		ltndLog.Infof("config file path" + Cfg.ConfigFile)
+		//ltndLog.Infof("config file path" + Cfg.ConfigFile)
 		// Initialize, and register our implementation of the gRPC interface
 		// exported by the rpcServer.
 		rpcServer, err := newRPCServer(
@@ -1201,7 +1201,7 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 		 }
 		 Cfg = loadedConfig
 		}		
-		ltndLog.Infof("config file path" + Cfg.ConfigFile)
+		//ltndLog.Infof("config file path" + Cfg.ConfigFile)
 		//code modify by -----start--------
 		//netDir := btcwallet.NetworkDir(
 		//	chainConfig.ChainDir, activeNetParams.Params,
@@ -1285,7 +1285,7 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 		 Cfg = loadedConfig
 		}
 		
-		ltndLog.Infof("config file path" + Cfg.ConfigFile)
+		//ltndLog.Infof("config file path" + Cfg.ConfigFile)
 		/////----channel.db -----
          	Cfg.graphDir = filepath.Join("test_data_PrvW",
 			defaultGraphSubDirname,
