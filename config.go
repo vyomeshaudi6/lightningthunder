@@ -392,7 +392,7 @@ func DefaultConfig() Config {
 // 	2) Pre-parse the command line to check for an alternative config file
 // 	3) Load configuration file overwriting defaults with any specified options
 // 	4) Parse CLI options and overwrite/add any specified options
-func LoadConfig() (*Config, error) {
+func LoadConfig(User_Id string) (*Config, error) {
 	// Pre-parse the command line options to pick up an alternative config
 	// file.
 
@@ -401,21 +401,7 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 	
-/*	//code edit for custom lnd config for each node
-	if(User_Id != ""){
-		fmt.Println("entered cnfig if condition")
-	  
-	 
-	}
-customlndConfigDir := filepath.Join("~/gocode","dev","test_data_PrvW",
-			defaultGraphSubDirname,
-			"simnet", User_Id,lncfg.DefaultConfigFilename)
-
-configFilePath := customlndConfigDir
-	 configFileDir := filepath.Join("~/gocode","dev","test_data_PrvW",
-			defaultGraphSubDirname,
-			"simnet", User_Id)
-*/
+	
 	// Show the version and exit if the version flag was specified.
 	appName := filepath.Base(os.Args[0])
 	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
@@ -433,13 +419,22 @@ configFilePath := customlndConfigDir
 	configFileDir := CleanAndExpandPath(preCfg.LndDir)
 	configFilePath := CleanAndExpandPath(preCfg.ConfigFile)
 	if configFileDir != DefaultLndDir {
-		if configFilePath == DefaultConfigFile {   
+		if configFilePath == DefaultConfigFile {
 			configFilePath = filepath.Join(
 				configFileDir, lncfg.DefaultConfigFilename,
 			)
 		}
 	}
-	//-------------fmt.Println("preCfg.ConfigFile : %t , configFilePath : %t , preCfg.LndDir %t",preCfg.ConfigFile,configFilePath ,preCfg.LndDir)
+	//code edit for custom lnd config for each node
+	customlndConfigPath := filepath.Join("~/gocode/dev/test_data_PrvW",
+			defaultGraphSubDirname,
+			normalizeNetwork(activeNetParams.Name), User_Id,lncfg.DefaultConfigFilename)
+
+	if User_Id != "" && !fileExists(customlndConfigPath) {
+	 preCfg.ConfigFile = CleanAndExpandPath(customlndConfigPath)
+	 configFilePath = CleanAndExpandPath(customlndConfigPath)
+	 }
+		
 	// Next, load any additional configuration options from the file.
 	var configFileError error
 	cfg := preCfg
@@ -454,7 +449,7 @@ configFilePath := customlndConfigDir
 
 		configFileError = err
 	}
-
+	fmt.Println("cfg.ConfigFile : %t , configFilePath : %t , cfg.LndDir %t",cfg.ConfigFile,configFilePath ,cfg.LndDir)
 	// Finally, parse the remaining command line options again to ensure
 	// they take precedence.
 	if _, err := flags.Parse(&cfg); err != nil {
