@@ -444,11 +444,6 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 				restProxyDest, "[::]", "[::1]", 1,
 			)
 		}
-		//walletaction response port for each node
-		rpcPortListening = Cfg.RPCListeners[i+1].String()
-		restPortListening = Cfg.RESTListeners[i+1].String()
-		peerPortListening = Cfg.Listeners[i].String()
-
 		if !Cfg.NoSeedBackup {
 			params, err := waitForWalletPassword(
 				Cfg, Cfg.RESTListeners, serverOpts, restDialOpts,
@@ -472,6 +467,11 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 			}
 		}
 		defer ChanDB.Close() // channel.db
+
+		//walletaction response port for each node
+		rpcPortListening = Cfg.RPCListeners[i+1].String()
+		restPortListening = Cfg.RESTListeners[i+1].String()
+		peerPortListening = Cfg.Listeners[i].String()
 
 		//--code edit  giving custom macaroon path according to the user id for storing macaroon files of each respective node into their current directory
 		Cfg.AdminMacPath = filepath.Join(
