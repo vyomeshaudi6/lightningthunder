@@ -344,8 +344,8 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 				// connections.
 				lis, err := lncfg.ListenOnAddress(grpcEndpoint)
 				if err != nil {
-					ltndLog.Errorf("unable to listen on %s",
-						grpcEndpoint)
+					//ltndLog.Errorf("unable to listen on %s",
+					//	grpcEndpoint)
 					continue
 					//return nil, nil, nil, err
 				}
@@ -367,8 +367,8 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 				}
 				lis, err := lncfg.ListenOnAddress(grpcEndpoint)
 				if err != nil {
-					ltndLog.Errorf("unable to listen on %s",
-						grpcEndpoint)
+					//ltndLog.Errorf("unable to listen on %s",
+					//	grpcEndpoint)
 					continue
 					//return nil, nil, nil, err
 				}
@@ -937,19 +937,6 @@ func getTLSConfig(Cfg *Config) (*tls.Config, *credentials.TransportCredentials,
 		return nil, nil, err
 	}
 
-	/*	restProxyDest := Cfg.RPCListeners[0].String()
-		switch {
-		case strings.Contains(restProxyDest, "0.0.0.0"):
-			restProxyDest = strings.Replace(
-				restProxyDest, "0.0.0.0", "127.0.0.1", 1,
-			)
-
-		case strings.Contains(restProxyDest, "[::]"):
-			restProxyDest = strings.Replace(
-				restProxyDest, "[::]", "[::1]", 1,
-			)
-		}
-	*/
 	return tlsCfg, &restCreds, nil
 }
 

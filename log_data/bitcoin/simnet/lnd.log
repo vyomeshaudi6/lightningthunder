@@ -1,0 +1,15 @@
+2020-09-10 11:38:08.086 [INF] LTND: Version: 0.10.99-beta commit=, build=production, logging=default
+2020-09-10 11:38:08.094 [INF] LTND: Active chain: Bitcoin (network=simnet)
+2020-09-10 11:38:08.177 [INF] RPCS: password RPC server listening on 127.0.0.1:10001
+2020-09-10 11:38:08.202 [INF] RPCS: password gRPC proxy started at 127.0.0.1:10005
+2020-09-10 11:38:08.203 [INF] LTND: Waiting for wallet encryption password. Use `lncli create` to create a wallet, `lncli unlock` to unlock an existing wallet, or `lncli changepassword` to change the password of an existing wallet and unlock it.
+2020-09-10 11:38:25.847 [INF] LTND: Received interrupt
+2020-09-10 11:38:25.847 [INF] LTND: Shutting down...
+2020-09-10 11:38:25.848 [INF] LTND: Gracefully shutting down.
+2020-09-10 11:38:25.849 [ERR] LTND: unable to set up wallet password listeners: shutting down
+2020-09-10 11:38:25.849 [INF] LTND: Shutdown complete
+2020-09-10 11:39:27.836 [INF] LTND: Version: 0.10.99-beta commit=, build=production, logging=default
+2020-09-10 11:39:27.836 [INF] LTND: Active chain: Bitcoin (network=simnet)
+2020-09-10 11:39:27.845 [INF] RPCS: password gRPC proxy started at 127.0.0.1:10005
+2020-09-10 11:39:27.845 [INF] RPCS: password RPC server listening on 127.0.0.1:10001
+2020-09-10 11:39:27.845 [INF] LTND: Waiting for wallet encryption password. Use `lncli create` to create a wallet, `lncli unlock` to unlock an existing wallet, or `lncli changepassword` to change the password of an existing wallet and unlock it.

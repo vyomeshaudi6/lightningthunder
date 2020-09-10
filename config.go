@@ -200,7 +200,7 @@ type Config struct {
 
 	Tor *lncfg.Tor `group:"Tor" namespace:"tor"`
 
-	SubRPCServers subRPCServerConfigs `group:"subrpc"`//code added start added
+	SubRPCServers subRPCServerConfigs `group:"subrpc"`
 
 	Hodl *hodl.Config `group:"hodl" namespace:"hodl"`
 
@@ -332,7 +332,7 @@ func DefaultConfig() Config {
 		MinBackoff:         defaultMinBackoff,
 		MaxBackoff:         defaultMaxBackoff,
 		SubRPCServers: subRPCServerConfigs{
-			SignRPC:   &signrpc.Config{},//code edit
+			SignRPC:   &signrpc.Config{},
 			RouterRPC: routerrpc.DefaultConfig(),
 		},
 		Autopilot: &lncfg.AutoPilot{
