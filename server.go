@@ -344,16 +344,18 @@ func newServer(cfg *Config, listenAddrs []net.Addr, chanDB *channeldb.DB,
 		)
 	)
 
-	listeners := make([]net.Listener, 1)
+	listeners := make([]net.Listener, len(listenAddrs))
+	for i, listenAddr := range listenAddrs {
 		// Note: though brontide.NewListener uses ResolveTCPAddr, it
 		// doesn't need to call the general lndResolveTCP function
 		// since we are resolving a local address.
-		listeners[0], err = brontide.NewListener(
-			nodeKeyECDH, listenAddrs[userIndex].String(),
+		listeners[i], err = brontide.NewListener(
+			nodeKeyECDH, listenAddr.String(),
 		)
 		if err != nil {
 			return nil, err
 		}
+	}
 		
 	
 
@@ -556,7 +558,7 @@ func newServer(cfg *Config, listenAddrs []net.Addr, chanDB *channeldb.DB,
 	// If we were requested to automatically configure port forwarding,
 	// we'll use the ports that the server will be listening on.
 	externalIPStrings := make([]string, 1)
-	externalIPStrings[0] = cfg.ExternalIPs[userIndex].String()
+	externalIPStrings[0] = cfg.ExternalIPs[0].String()
 	
 	if s.natTraversal != nil {
 		listenPorts := make([]uint16, 0, len(listenAddrs))

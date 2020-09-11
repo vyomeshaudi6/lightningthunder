@@ -217,7 +217,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 	Controller_Config = loadedConfig
 	defer func() {
 		ltndLog.Info("Shutdown complete")
-		err := Cfg.LogWriter.Close()
+		err := Controller_Config.LogWriter.Close()
 		if err != nil {
 			ltndLog.Errorf("Could not close log rotator: %v", err)
 		}
@@ -230,28 +230,28 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 
 	var network string
 	switch {
-	case Cfg.Bitcoin.TestNet3 || Cfg.Litecoin.TestNet3:
+	case Controller_Config.Bitcoin.TestNet3 || Controller_Config.Litecoin.TestNet3:
 		network = "testnet"
 
-	case Cfg.Bitcoin.MainNet || Cfg.Litecoin.MainNet:
+	case Controller_Config.Bitcoin.MainNet || Controller_Config.Litecoin.MainNet:
 		network = "mainnet"
 
-	case Cfg.Bitcoin.SimNet || Cfg.Litecoin.SimNet:
+	case Controller_Config.Bitcoin.SimNet || Controller_Config.Litecoin.SimNet:
 		network = "simnet"
 
-	case Cfg.Bitcoin.RegTest || Cfg.Litecoin.RegTest:
+	case Controller_Config.Bitcoin.RegTest || Controller_Config.Litecoin.RegTest:
 		network = "regtest"
 	}
 
 	ltndLog.Infof("Active chain: %v (network=%v)",
-		strings.Title(Cfg.registeredChains.PrimaryChain().String()),
+		strings.Title(Controller_Config.registeredChains.PrimaryChain().String()),
 		network,
 	)
 
 	// Enable http profiling server if requested.
-	if Cfg.Profile != "" {
+	if Controller_Config.Profile != "" {
 		go func() {
-			listenAddr := net.JoinHostPort("", Cfg.Profile)
+			listenAddr := net.JoinHostPort("", Controller_Config.Profile)
 			profileRedirect := http.RedirectHandler("/debug/pprof",
 				http.StatusSeeOther)
 			http.Handle("/", profileRedirect)
@@ -260,8 +260,8 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 	}
 
 	// Write cpu profile if requested.
-	if Cfg.CPUProfile != "" {
-		f, err := os.Create(Cfg.CPUProfile)
+	if Controller_Config.CPUProfile != "" {
+		f, err := os.Create(Controller_Config.CPUProfile)
 		if err != nil {
 			err := fmt.Errorf("unable to create CPU profile: %v",
 				err)
@@ -282,7 +282,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 	defer cancel()
 	
 	// Only process macaroons if --no-macaroons isn't set.
-	tlsCfg, restCreds, err := getTLSConfig(Cfg)
+	tlsCfg, restCreds, err := getTLSConfig(Controller_Config)
 	if err != nil {
 		err := fmt.Errorf("unable to load TLS credentials: %v", err)
 		ltndLog.Error(err)
@@ -307,14 +307,14 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 	// Before starting the wallet, we'll create and start our Neutrino
 	// light client instance, if enabled, in order to allow it to sync
 	// while the rest of the daemon continues startup.
-	mainChain := Cfg.Bitcoin
-	if Cfg.registeredChains.PrimaryChain() == litecoinChain {
-		mainChain = Cfg.Litecoin
+	mainChain := Controller_Config.Bitcoin
+	if Controller_Config.registeredChains.PrimaryChain() == litecoinChain {
+		mainChain = Controller_Config.Litecoin
 	}
 	var neutrinoCS *neutrino.ChainService
 	if mainChain.Node == "neutrino" {
 		neutrinoBackend, neutrinoCleanUp, err := initNeutrinoBackend(
-			Cfg, mainChain.ChainDir,
+			Controller_Config, mainChain.ChainDir,
 		)
 		if err != nil {
 			err := fmt.Errorf("unable to initialize neutrino "+
@@ -339,7 +339,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 		var grpcListeners []*ListenerWithSignal
 		//modified added caller service check in order to reserve rpc 1st port for wallet unlocker service and remaining for lightning service
 		if callerservice == "walletaction" {
-			for _, grpcEndpoint := range Cfg.RPCListeners {
+			for _, grpcEndpoint := range Controller_Config.RPCListeners {
 				// Start a gRPC server listening for HTTP/2
 				// connections.
 				lis, err := lncfg.ListenOnAddress(grpcEndpoint)
@@ -358,13 +358,13 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 				break
 			}
 		} else {
-			for i, grpcEndpoint := range Cfg.RPCListeners {
+			for _, grpcEndpoint := range Cfg.RPCListeners {
 				// Start a gRPC server listening for HTTP/2
 				// connections.
 				//skipped the first iteration inorder to save the first rpc port for walletunlocker service
-				if i == 0 {
-					continue
-				}
+				//if i == 0 {
+				//	continue
+				//}
 				lis, err := lncfg.ListenOnAddress(grpcEndpoint)
 				if err != nil {
 					//ltndLog.Errorf("unable to listen on %s",
@@ -405,7 +405,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 		// Otherwise we'll return the regular listeners.
 		return getListeners("walletaction")
 	}
-	listeners := make([]*net.TCPListener, len(Cfg.Listeners))
+/*	listeners := make([]*net.TCPListener, len(Cfg.Listeners))// remove this and place in server or rpc where ever it was
 	for i, tcplistenAddr := range Cfg.Listeners {
 		addr, err := net.ResolveTCPAddr("tcp", tcplistenAddr.String())
 		if err != nil {
@@ -419,7 +419,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 
 		listeners[i] = l
 	}
-
+*/
 	// We wait until the user provides a password over RPC. In case lnd is
 	// started with the --noseedbackup flag, we use the default password
 	// for wallet encryption.
@@ -432,7 +432,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 		walletInitParams.Birthday = time.Now()
 		// code modified to get rest proxy set accoring to rpc port i.e linking rpc port and rest proxy port together
 		// restproxy des modified linkednd 1st rpc port and 1st rest port for wallet unlocker service
-		restProxyDest := Cfg.RPCListeners[0].String()//rest port for unlock/create
+		restProxyDest := Controller_Config.RPCListeners[0].String()//rest port for unlock/create from controler config file in .lnd folder
 		switch {
 		case strings.Contains(restProxyDest, "0.0.0.0"):
 			restProxyDest = strings.Replace(
@@ -444,9 +444,10 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 				restProxyDest, "[::]", "[::1]", 1,
 			)
 		}
+		
 		if !Cfg.NoSeedBackup {
 			params, err := waitForWalletPassword(
-				Cfg, Cfg.RESTListeners, serverOpts, restDialOpts,
+				Cfg, Controller_Config.RESTListeners, serverOpts, restDialOpts,
 				restProxyDest, tlsCfg, walletUnlockerListeners,
 			)
 			if err != nil {
@@ -467,12 +468,14 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 			}
 		}
 		defer ChanDB.Close() // channel.db
-
 		//walletaction response port for each node
-		rpcPortListening = Cfg.RPCListeners[i+1].String()
-		restPortListening = Cfg.RESTListeners[i+1].String()
-		peerPortListening = Cfg.Listeners[i].String()
-
+		// rpcPortListening = Cfg.RPCListeners[i+1].String()
+		// restPortListening = Cfg.RESTListeners[i+1].String()
+		// peerPortListening = Cfg.Listeners[i].String()
+  		 
+		// restproxy des modified linked 2nd rpc port and 1nd rest port for lightning service
+		// restProxyDest = Cfg.RPCListeners[i+1].String()
+		
 		//--code edit  giving custom macaroon path according to the user id for storing macaroon files of each respective node into their current directory
 		Cfg.AdminMacPath = filepath.Join(
 			Cfg.graphDir, DefaultAdminMacFilename,
@@ -732,8 +735,11 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 			// Otherwise we'll return the regular listeners.
 			return getListeners("lightningaction")
 		}
+		if fileExists(Cfg.graphDir + "/" + lncfg.DefaultConfigFilename) {
+
+		}
 		// restproxy des modified linked 2nd rpc port and 1nd rest port for lightning service
-		restProxyDest = Cfg.RPCListeners[i+1].String()
+		restProxyDest = Cfg.RPCListeners[0].String() // in case when custom config is there otherwise wrong listen port
 		switch {
 		case strings.Contains(restProxyDest, "0.0.0.0"):
 			restProxyDest = strings.Replace(
@@ -1174,11 +1180,14 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 				cipherSeed.InternalVersion,
 				keychain.KeyDerivationVersion)
 		}
+		
 		Confg.graphDir = filepath.Join("test_data_PrvW",
 			defaultGraphSubDirname,
 			normalizeNetwork(activeNetParams.Name), initMsg.UniqueId)
+
 		// added userid for multiple server instance
 		UserId = initMsg.UniqueId
+
 		//custom configuration code edit for each node
 		Cfg = Controller_Config
                 if fileExists(Confg.graphDir + "/" + lncfg.DefaultConfigFilename) {
