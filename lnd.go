@@ -691,7 +691,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 		server, err := newServer(
 			Cfg, Cfg.Listeners, ChanDB, towerClientDB, activeChainControl,
 			&idKeyDesc, walletInitParams.ChansToRestore, chainedAcceptor,
-			torController, UserId,i,
+			torController, UserId,
 		)
 		if err != nil {
 			err := fmt.Errorf("unable to create server: %v", err)

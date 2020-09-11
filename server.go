@@ -334,7 +334,7 @@ func newServer(cfg *Config, listenAddrs []net.Addr, chanDB *channeldb.DB,
 	nodeKeyDesc *keychain.KeyDescriptor,
 	chansToRestore walletunlocker.ChannelsToRecover,
 	chanPredicate chanacceptor.ChannelAcceptor,
-	torController *tor.Controller, UserId string,userIndex int,) (*server, error) {
+	torController *tor.Controller, UserId string,) (*server, error) {
 
 	var (
 		err           error
