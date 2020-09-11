@@ -405,21 +405,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 		// Otherwise we'll return the regular listeners.
 		return getListeners("walletaction")
 	}
-/*	listeners := make([]*net.TCPListener, len(Cfg.Listeners))// remove this and place in server or rpc where ever it was
-	for i, tcplistenAddr := range Cfg.Listeners {
-		addr, err := net.ResolveTCPAddr("tcp", tcplistenAddr.String())
-		if err != nil {
-			return err
-		}
 
-		l, err := net.ListenTCP("tcp", addr)
-		if err != nil {
-			return err
-		}
-
-		listeners[i] = l
-	}
-*/
 	// We wait until the user provides a password over RPC. In case lnd is
 	// started with the --noseedbackup flag, we use the default password
 	// for wallet encryption.
