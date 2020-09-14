@@ -269,13 +269,6 @@ func (s *Server) RegisterWithRestServer(ctx context.Context,
 // pre-image, along with the final route will be returned.
 func (s *Server) SendPaymentV2(req *SendPaymentRequest,
 	stream Router_SendPaymentV2Server) error {
-	
-	if req.User_Id != s.User_Id {
-		return fmt.Errorf("server instance not found lenght of Subserverpointers : %d req.User_Id:%s , s.User_Id : %s", len(Subserverpointers), req.User_Id, s.User_Id)
-	}
-	if req.User_Id != s.cfg.RouterBackend.User_Id {
-		return fmt.Errorf("RouterBackend instance not match lenght of Subserverpointers : %d req.User_Id:%s , s.cfg.RouterBackend.User_Id : %s , s.User_Id: %s", len(Subserverpointers), req.User_Id, s.cfg.RouterBackend.User_Id, s.User_Id)
-	}
 
 	payment, err := s.cfg.RouterBackend.extractIntentFromSendRequest(req)
 	if err != nil {
