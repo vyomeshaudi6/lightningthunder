@@ -62,7 +62,7 @@ import (
 	"github.com/lightningnetwork/lnd/record"
 	"github.com/lightningnetwork/lnd/routing"
 	"github.com/lightningnetwork/lnd/routing/route"
-	"github.com/lightningnetwork/lnd/signal"
+	//"github.com/lightningnetwork/lnd/signal"
 	"github.com/lightningnetwork/lnd/sweep"
 	"github.com/lightningnetwork/lnd/watchtower"
 	"github.com/lightningnetwork/lnd/zpay32"
@@ -5303,7 +5303,18 @@ func (r *rpcServer) GetNetworkInfo(ctx context.Context,
 func (r *rpcServer) StopDaemon(ctx context.Context,
 	in *lnrpc.StopRequest) (*lnrpc.StopResponse, error) {
 	
-	signal.RequestShutdown()
+	//code edit to stop rpc and server instance of particular node
+	r.server.chanDB.Close()
+	if !r.cfg.NoMacaroons {
+	r.macService.Close()
+	}
+	r.server.Stop() //server instance stopped
+	r.Stop() // rpc server stopped
+	// watch towe and tor services code update need to bring stop in new version
+	//if Cfg.WtClient.Active {
+	//r.server.towerClientDB.Close()
+	//}
+	//signal.RequestShutdown()
 	return &lnrpc.StopResponse{}, nil
 }
 
