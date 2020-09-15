@@ -431,7 +431,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 			)
 		}
 		
-		if !Cfg.NoSeedBackup {
+		if !Controller_Config.NoSeedBackup {
 			params, err := waitForWalletPassword(
 				Cfg, Controller_Config.RESTListeners, serverOpts, restDialOpts,
 				restProxyDest, tlsCfg, walletUnlockerListeners,
@@ -839,11 +839,12 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 			}
 			defer tower.Stop()
 		}
-	} //for loop ends
+	 } //for loop ends
 
 	// Wait for shutdown signal from either a graceful server stop or from
 	// the interrupt handler.
 	<-shutdownChan
+	
 	return nil
 }
 
@@ -1259,6 +1260,7 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 		UserId = unlockMsg.UniqueId
 		//custom configuration code edit for each node
 		Cfg = Controller_Config
+		ltndLog.Infof("lnd.go before loading configuration")
                 if fileExists(Confg.graphDir + "/" + lncfg.DefaultConfigFilename) {
 		 loadedConfig, err := LoadConfig(UserId) //returns a new instance of config accordingly
 		 if err != nil {
@@ -1266,12 +1268,13 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 		 }
 		 Cfg = loadedConfig
 		}
-		
-		//ltndLog.Infof("config file path" + Cfg.ConfigFile)
+		ltndLog.Infof("lnd.go after loading configuration")
+		ltndLog.Infof("config file path" + Cfg.ConfigFile)
 		/////----channel.db -----
          	Cfg.graphDir = filepath.Join("test_data_PrvW",
 			defaultGraphSubDirname,
 			normalizeNetwork(activeNetParams.Name), unlockMsg.UniqueId)
+		ltndLog.Infof("lnd.go before opening getbackend")
 		chanDbBackend, err := Cfg.DB.GetBackend(ctx,
 			Cfg.localDatabaseDir(unlockMsg.UniqueId), Cfg.networkName(),
 		)
@@ -1279,8 +1282,8 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 			ltndLog.Error(err)
 			return nil, err
 		}
-
-		ltndLog.Infof("lnd.go before opening channeldb.open")
+		ltndLog.Infof("lnd.go after opening getbackend")
+		ltndLog.Infof("lnd.go before opening create with backend")
 		// Open the channeldb, which is dedicated to storing channel, and
 		// network related metadata.
 		ChanDB, err = channeldb.CreateWithBackend(
@@ -1290,6 +1293,7 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 			channeldb.OptionSetSyncFreelist(Cfg.SyncFreelist),
 			channeldb.OptionDryRunMigration(Cfg.DryRunMigration),
 		)
+		ltndLog.Infof("lnd.go after opening create with backend")
 		switch {
 		case err == channeldb.ErrDryRunMigrationOK:
 			ltndLog.Infof("%v, exiting", err)

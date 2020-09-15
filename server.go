@@ -1495,6 +1495,7 @@ func (s *server) Stop() error {
 		s.peerNotifier.Stop()
 		s.htlcNotifier.Stop()
 		s.cc.wallet.Shutdown()
+		//s.cc.wallet.WalletController.Wallet.Stop()
 		s.cc.chainView.Stop()
 		s.connMgr.Stop()
 		s.cc.feeEstimator.Stop()

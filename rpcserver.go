@@ -854,17 +854,17 @@ func (r *rpcServer) Start() error {
 
 	// Now spin up a network listener for each requested port and start a
 	// goroutine that serves REST with the created mux there.
-	for i, restEndpoint := range r.cfg.RESTListeners {
-		if i == 0 {
-			i = i + 1
-			continue
-		}
+	for _, restEndpoint := range r.cfg.RESTListeners {
+		//if i == 0 {
+		//	i = i + 1
+		//	continue
+		//}
 		lis, err := lncfg.TLSListenOnAddress(restEndpoint, r.tlsCfg)
 		if err != nil {
 			ltndLog.Errorf("gRPC proxy unable to listen on %s",
 				restEndpoint)
-			continue
-			//return err -----
+		//	continue
+			return err
 		}
 
 		r.listenerCleanUp = append(r.listenerCleanUp, func() {
@@ -911,6 +911,8 @@ func (r *rpcServer) Stop() error {
 				subServer.Name(), err)
 			continue
 		}
+	rpcsLog.Infof("Stopped %v Sub-RPC Server success",
+			subServer.Name())
 	}
 
 	// Finally, we can clean up all the listening sockets to ensure that we
@@ -5304,17 +5306,23 @@ func (r *rpcServer) StopDaemon(ctx context.Context,
 	in *lnrpc.StopRequest) (*lnrpc.StopResponse, error) {
 	
 	//code edit to stop rpc and server instance of particular node
-	r.server.chanDB.Close()
-	if !r.cfg.NoMacaroons {
-	r.macService.Close()
-	}
+	
+	//if !r.cfg.NoMacaroons {
+	//r.macService.Close()
+	//}
+	// r.server.chanDB.Close()
 	r.server.Stop() //server instance stopped
 	r.Stop() // rpc server stopped
+
+
+
 	// watch towe and tor services code update need to bring stop in new version
 	//if Cfg.WtClient.Active {
 	//r.server.towerClientDB.Close()
 	//}
-	//signal.RequestShutdown()
+
+	
+	// signal.RequestShutdown()
 	return &lnrpc.StopResponse{}, nil
 }
 
