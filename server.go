@@ -66,6 +66,7 @@ import (
 	"github.com/lightningnetwork/lnd/watchtower/wtclient"
 	"github.com/lightningnetwork/lnd/watchtower/wtdb"
 	"github.com/lightningnetwork/lnd/watchtower/wtpolicy"
+	
 )
 
 const (
@@ -278,6 +279,7 @@ type server struct {
 	quit chan struct{}
 
 	wg sync.WaitGroup
+
 }
 
 // parseAddr parses an address from its string format to a net.Addr.
@@ -451,7 +453,7 @@ func newServer(cfg *Config, listenAddrs []net.Addr, chanDB *channeldb.DB,
 
 		featureMgr: featureMgr,
 		quit:       make(chan struct{}),
-	}
+		}
 
 	s.witnessBeacon = &preimageBeacon{
 		wCache:      chanDB.NewWitnessCache(),

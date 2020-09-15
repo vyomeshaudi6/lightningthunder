@@ -69,6 +69,7 @@ import (
 	"github.com/tv42/zbase32"
 	"google.golang.org/grpc"
 	"gopkg.in/macaroon-bakery.v2/bakery"
+	"github.com/btcsuite/btcwallet/wallet"
 )
 
 var (
@@ -502,6 +503,8 @@ type rpcServer struct {
 
 	// selfNode is our own pubkey.
 	selfNode route.Vertex
+	//code edit to start stop node
+	Loader	*wallet.Loader
 }
 
 // A compile time check to ensure that rpcServer fully implements the
@@ -519,7 +522,7 @@ func newRPCServer(cfg *Config, s *server, macService *macaroons.Service,
 	atpl *autopilot.Manager, invoiceRegistry *invoices.InvoiceRegistry,
 	tower *watchtower.Standalone, tlsCfg *tls.Config,
 	getListeners rpcListeners,
-	chanPredicate *chanacceptor.ChainedAcceptor, UserId string) (*rpcServer, error) {
+	chanPredicate *chanacceptor.ChainedAcceptor, UserId string, Loader *wallet.Loader,) (*rpcServer, error) {
 
 	// Set up router rpc backend.
 	channelGraph := s.chanDB.ChannelGraph()
@@ -711,6 +714,7 @@ func newRPCServer(cfg *Config, s *server, macService *macaroons.Service,
 		quit:            make(chan struct{}, 1),
 		macService:      macService,
 		selfNode:        selfNode.PubKeyBytes,
+		Loader:		 Loader,
 	}
 	lnrpc.RegisterLightningServer(grpcServer, rootRPCServer)
 
@@ -5307,13 +5311,13 @@ func (r *rpcServer) StopDaemon(ctx context.Context,
 	
 	//code edit to stop rpc and server instance of particular node
 	
-	//if !r.cfg.NoMacaroons {
-	//r.macService.Close()
-	//}
-	// r.server.chanDB.Close()
-	r.server.Stop() //server instance stopped
+	if !r.cfg.NoMacaroons {
+	r.macService.Close()
+	}
+	r.server.chanDB.Close()
+	r.Loader. UnloadWallet()
 	r.Stop() // rpc server stopped
-
+	r.server.Stop() //server instance stopped
 
 
 	// watch towe and tor services code update need to bring stop in new version

@@ -65,6 +65,7 @@ var (
 	rpcPortListening   string
 	restPortListening  string
 	peerPortListening  string
+	Loader		  *wallet.Loader  
 )
 
 // WalletUnlockerAuthOptions returns a list of DialOptions that can be used to
@@ -743,7 +744,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 		rpcServer, err := newRPCServer(
 			Cfg, server, macaroonService, Cfg.SubRPCServers, serverOpts,
 			restDialOpts, restProxyDest, atplManager, server.invoices,
-			tower, tlsCfg, rpcListeners, chainedAcceptor, UserId,
+			tower, tlsCfg, rpcListeners, chainedAcceptor, UserId,Loader,
 		)
 		//code edit storing instances of rpcserve in slice
 		RpcserverInstances = append(RpcserverInstances, rpcServer)
@@ -1194,7 +1195,7 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 			normalizeNetwork(activeNetParams.Name), initMsg.UniqueId)
 		netDir := Cfg.graphDir
 		//code modify by -----end--------
-		loader := wallet.NewLoader(
+		Loader = wallet.NewLoader(
 			activeNetParams.Params, netDir, !Cfg.SyncFreelist,
 			recoveryWindow,
 		)
@@ -1202,13 +1203,13 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 		// With the seed, we can now use the wallet loader to create
 		// the wallet, then pass it back to avoid unlocking it again.
 		birthday := cipherSeed.BirthdayTime()
-		newWallet, err := loader.CreateNewWallet(
+		newWallet, err := Loader.CreateNewWallet(
 			password, password, cipherSeed.Entropy[:], birthday,
 		)
 		if err != nil {
 			// Don't leave the file open in case the new wallet
 			// could not be created for whatever reason.
-			if err := loader.UnloadWallet(); err != nil {
+			if err := Loader.UnloadWallet(); err != nil {
 				ltndLog.Errorf("Could not unload new "+
 					"wallet: %v", err)
 			}
@@ -1304,7 +1305,8 @@ func waitForWalletPassword(Confg *Config, restEndpoints []net.Addr,
 			return nil, err
 		}
 		ltndLog.Infof("lnd.go after opening channeldb.open channeled opened success")
-				
+			
+		Loader = unlockMsg.Loader	
 		return &WalletUnlockParams{
 			Password:       unlockMsg.Passphrase,
 			RecoveryWindow: unlockMsg.RecoveryWindow,

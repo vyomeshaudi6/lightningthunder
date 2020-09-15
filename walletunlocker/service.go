@@ -85,6 +85,7 @@ type WalletUnlockMsg struct {
 	// after the wallet has been unlocked.
 	ChanBackups ChannelsToRecover
 	UniqueId    string
+	Loader	    *wallet.Loader
 }
 
 // UnlockerService implements the WalletUnlocker service used to provide lnd
@@ -386,6 +387,7 @@ func (u *UnlockerService) UnlockWallet(ctx context.Context,
 		RecoveryWindow: recoveryWindow,
 		Wallet:         unlockedWallet,
 		UniqueId:       in.User_Id,
+		Loader:		loader,
 	}
 
 	// Before we return the unlock payload, we'll check if we can extract
