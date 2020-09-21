@@ -274,32 +274,30 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 		defer pprof.StopCPUProfile()
 	}
 
-	// Create the network-segmented directory for the channel database.
-
-
+	
 	//startOpenTime := time.Now()
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	
 	// Only process macaroons if --no-macaroons isn't set.
-	tlsCfg, restCreds, err := getTLSConfig(Controller_Config)
+	TlsCfg, RestCreds, err := getTLSConfig(Controller_Config)
 	if err != nil {
 		err := fmt.Errorf("unable to load TLS credentials: %v", err)
 		ltndLog.Error(err)
 		return err
 	}
 
-	serverCreds := credentials.NewTLS(tlsCfg)
-	serverOpts := []grpc.ServerOption{grpc.Creds(serverCreds)}
+	ServerCreds := credentials.NewTLS(TlsCfg)
+	ServerOpts := []grpc.ServerOption{grpc.Creds(ServerCreds)}
 
 	// For our REST dial options, we'll still use TLS, but also increase
 	// the max message size that we'll decode to allow clients to hit
 	// endpoints which return more data such as the DescribeGraph call.
 	// We set this to 200MiB atm. Should be the same value as maxMsgRecvSize
 	// in cmd/lncli/main.go.
-	restDialOpts := []grpc.DialOption{
-		grpc.WithTransportCredentials(*restCreds),
+	RestDialOpts := []grpc.DialOption{
+		grpc.WithTransportCredentials(*RestCreds),
 		grpc.WithDefaultCallOptions(
 			grpc.MaxCallRecvMsgSize(1 * 1024 * 1024 * 200),
 		),
@@ -434,8 +432,8 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 		
 		if !Controller_Config.NoSeedBackup {
 			params, err := waitForWalletPassword(
-				Cfg, Controller_Config.RESTListeners, serverOpts, restDialOpts,
-				restProxyDest, tlsCfg, walletUnlockerListeners,
+				Cfg, Controller_Config.RESTListeners, ServerOpts, RestDialOpts,
+				restProxyDest, TlsCfg, walletUnlockerListeners,
 			)
 			if err != nil {
 				err := fmt.Errorf("unable to set up wallet password "+
@@ -454,6 +452,31 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 					walletInitParams.RecoveryWindow)
 			}
 		}
+		//custom tls code edit 
+		Cfg.TLSCertPath = filepath.Join(Cfg.graphDir, DefaultTLSCertFilename)
+		Cfg.TLSKeyPath = filepath.Join(Cfg.graphDir, DefaultTLSKeyFilename)
+		tlsCfg, restCreds, err := getTLSConfig(Cfg)
+		if err != nil {
+		err = fmt.Errorf("unable to load TLS credentials: %v", err)
+		ltndLog.Error(err)
+		return err
+		}
+
+		serverCreds := credentials.NewTLS(tlsCfg)
+		serverOpts := []grpc.ServerOption{grpc.Creds(serverCreds)}
+	
+		// For our REST dial options, we'll still use TLS, but also increase
+		// the max message size that we'll decode to allow clients to hit
+		// endpoints which return more data such as the DescribeGraph call.
+		// We set this to 200MiB atm. Should be the same value as maxMsgRecvSize
+		// in cmd/lncli/main.go.
+		restDialOpts := []grpc.DialOption{
+		grpc.WithTransportCredentials(*restCreds),
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(1 * 1024 * 1024 * 200),
+		),
+		}
+
 		defer ChanDB.Close() // channel.db
 		//walletaction response port for each node
 		// rpcPortListening = Cfg.RPCListeners[i+1].String()
@@ -477,6 +500,7 @@ func Main(lisCfg ListenerCfg, shutdownChan <-chan struct{}) error {
 		Cfg.BackupFilePath = filepath.Join(
 			Cfg.graphDir, DefaultBackupFileName,
 		)
+
 
 		var macaroonService *macaroons.Service
 		if !Cfg.NoMacaroons {

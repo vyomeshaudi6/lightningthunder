@@ -39,8 +39,8 @@ const (
 	defaultChainSubDirname    = "chain"
 	defaultGraphSubDirname    = "graph"
 	defaultTowerSubDirname    = "watchtower"
-	defaultTLSCertFilename    = "tls.cert"
-	defaultTLSKeyFilename     = "tls.key"
+	DefaultTLSCertFilename    = "tls.cert"
+	DefaultTLSKeyFilename     = "tls.key"
 	DefaultAdminMacFilename   = "admin.macaroon"
 	DefaultReadMacFilename    = "readonly.macaroon"
 	DefaultInvoiceMacFilename = "invoice.macaroon"
@@ -107,8 +107,8 @@ var (
 
 	defaultTowerDir = filepath.Join(defaultDataDir, defaultTowerSubDirname)
 
-	defaultTLSCertPath = filepath.Join(DefaultLndDir, defaultTLSCertFilename)
-	defaultTLSKeyPath  = filepath.Join(DefaultLndDir, defaultTLSKeyFilename)
+	defaultTLSCertPath = filepath.Join(DefaultLndDir, DefaultTLSCertFilename)
+	defaultTLSKeyPath  = filepath.Join(DefaultLndDir, DefaultTLSKeyFilename)
 
 	defaultBtcdDir         = btcutil.AppDataDir("btcd", false)
 	defaultBtcdRPCCertFile = filepath.Join(defaultBtcdDir, "rpc.cert")
@@ -480,8 +480,8 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, error) {
 	lndDir := CleanAndExpandPath(cfg.LndDir)
 	if lndDir != DefaultLndDir {
 		cfg.DataDir = filepath.Join(lndDir, defaultDataDirname)
-		cfg.TLSCertPath = filepath.Join(lndDir, defaultTLSCertFilename)
-		cfg.TLSKeyPath = filepath.Join(lndDir, defaultTLSKeyFilename)
+		cfg.TLSCertPath = filepath.Join(lndDir, DefaultTLSCertFilename)
+		cfg.TLSKeyPath = filepath.Join(lndDir, DefaultTLSKeyFilename)
 		cfg.LogDir = filepath.Join(lndDir, defaultLogDirname)
 
 		// If the watchtower's directory is set to the default, i.e. the
